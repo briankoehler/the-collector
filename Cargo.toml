@@ -1,0 +1,21 @@
+[package]
+name = "the-collector"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+riven = { version = "2.27.0" }
+tokio = { version = "1.35.1", features = ["full"] }
+axum = { version = "0.7.2" }
+tower = { version = "*" }
+serde = { version = "1.0.193" }
+serde_json = { version = "1.0.108" }
+diesel = { version = "2.1.4", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "chrono"] }
+dotenvy = { version = "0.15" }
+chrono = { version = "0.4.31", features = ["serde"] }
+uuid = { version = "1.6.1", features = ["v4", "fast-rng", "serde"] }
+
+[features]
+default = []
