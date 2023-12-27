@@ -6,6 +6,8 @@ mod db;
 mod match_fetcher;
 mod server;
 
+const SOCKET_PATH: &str = "/tmp/lyte.socket";
+
 #[tokio::main]
 async fn main() {
     dotenv().ok().unwrap();
@@ -20,6 +22,6 @@ async fn main() {
 
     // Establish a DB connectioon and start the MatchFetcher
     let mut conn = db::establish_connection();
-    let fetcher = MatchFetcher::new(&mut conn);
+    let fetcher = MatchFetcher::new(&mut conn, SOCKET_PATH);
     fetcher.start().await;
 }

@@ -5,6 +5,8 @@ use diesel::{ExpressionMethods, Insertable, QueryDsl, QueryResult, RunQueryDsl, 
 use riven::consts::RegionalRoute::AMERICAS;
 use riven::models::match_v5::Match;
 use riven::RiotApi;
+use std::io::Write;
+use std::os::unix::net::UnixStream;
 
 // TODO: Move to a runtime configuration.
 /// Seconds added to queries for new matches. This is necessary because
@@ -18,18 +20,21 @@ pub struct MatchFetcher<'a> {
     accounts: Vec<String>,
     riot_api_key: String,
     conn: &'a mut SqliteConnection,
+    stream: UnixStream,
 }
 
 impl<'a> MatchFetcher<'a> {
     /// Creates a new `MatchFetcher`. Will panic if `RIOT_API_KEY` is not set or
     /// it fails to query the accounts table from the DB.
-    pub fn new(conn: &'a mut SqliteConnection) -> Self {
+    pub fn new(conn: &'a mut SqliteConnection, socket_path: &str) -> Self {
         let accounts = account::table.select(account::puuid).load(conn).unwrap();
         let riot_api_key = std::env::var("RIOT_API_KEY").unwrap();
+        let stream = UnixStream::connect(socket_path).unwrap();
         Self {
             accounts,
             riot_api_key,
             conn,
+            stream,
         }
     }
 
@@ -100,13 +105,25 @@ impl<'a> MatchFetcher<'a> {
             .on_conflict_do_nothing()
             .execute(self.conn)
             .unwrap();
-        let inserted_match_stats_count = new_cached_match_stats
+        let inserted_match_stats: crate::db::model::MatchStat = new_cached_match_stats
             .insert_into(match_stats::table)
-            .execute(self.conn)
+            .get_result(self.conn)
+            .unwrap();
+
+        let _ = self
+            .stream
+            .write_all(
+                serde_json::to_string(&inserted_match_stats)
+                    .unwrap()
+                    .as_bytes(),
+            )
             .unwrap();
 
         println!("Inserted match count: {}", inserted_match_count);
-        println!("Inserted match stats count: {}", inserted_match_stats_count);
+        println!(
+            "Inserted match stats: {:?}",
+            serde_json::to_string(&inserted_match_stats)
+        );
     }
 
     /// Gets the latest match ID that a PUUID was tied to from the local DB.

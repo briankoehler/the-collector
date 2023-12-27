@@ -16,6 +16,7 @@ diesel = { version = "2.1.4", features = ["sqlite", "returning_clauses_for_sqlit
 dotenvy = { version = "0.15" }
 chrono = { version = "0.4.31", features = ["serde"] }
 uuid = { version = "1.6.1", features = ["v4", "fast-rng", "serde"] }
+rusqlite = { version = "0.30.0", features = ["bundled"] } # This is sometimes needed for RETURNING to work w/SQLite?
 
 [features]
 default = []

@@ -3,7 +3,10 @@ use crate::db::{establish_connection, model};
 use crate::server::routes::{jsonify, JsonString};
 use axum::http::StatusCode;
 use axum::{extract::Path, Json};
-use diesel::{QueryDsl, RunQueryDsl, SelectableHelper};
+use diesel::dsl::sql;
+use diesel::query_builder::{AsQuery, DebugQuery};
+use diesel::sqlite::Sqlite;
+use diesel::{debug_query, Insertable, IntoSql, QueryDsl, RunQueryDsl, SelectableHelper};
 use riven::RiotApi;
 use serde::Deserialize;
 
@@ -33,8 +36,7 @@ pub async fn post_account_by_name(Json(payload): Json<NewAccountData>) -> JsonSt
 
     let result = diesel::insert_into(account::table)
         .values(&new_account)
-        .returning(model::Account::as_returning())
-        .get_result(&mut conn)
+        .get_result::<model::Account>(&mut conn)
         .expect("Error inserting new account");
     jsonify(&result)
 }
