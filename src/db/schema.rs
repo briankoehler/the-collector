@@ -41,4 +41,8 @@ diesel::table! {
 diesel::joinable!(match_stats -> account (puuid));
 diesel::joinable!(match_stats -> match_ (match_id));
 
-diesel::allow_tables_to_appear_in_same_query!(account, match_, match_stats,);
+diesel::allow_tables_to_appear_in_same_query!(
+    account,
+    match_,
+    match_stats,
+);

@@ -38,10 +38,12 @@ impl model::Match {
             .find(|p| p.win)
             .expect("No winning team found")
             .team_id as i64;
-        let surrender = participants
-            .find(|p| !p.win)
-            .expect("No loser foound")
-            .game_ended_in_surrender;
+        // TODO: Fix this for arena games
+        // let surrender = participants
+        //     .find(|p| !p.win)
+        //     .expect("No loser found")
+        //     .game_ended_in_surrender;
+        let surrender = false;
 
         Self {
             id: riven_match.metadata.match_id.clone(),
