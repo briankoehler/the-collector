@@ -1,9 +1,12 @@
 use crate::server::Server;
 use dotenvy::dotenv;
 use match_fetcher::MatchFetcher;
+use match_subscriber::{DatabaseSubscriber, SocketSubscriber};
+use tokio::net::UnixStream;
 
 mod db;
 mod match_fetcher;
+mod match_subscriber;
 mod server;
 
 const SOCKET_PATH: &str = "/tmp/lyte.socket";
@@ -22,6 +25,17 @@ async fn main() {
 
     // Establish a DB connectioon and start the MatchFetcher
     let mut conn = db::establish_connection();
-    let fetcher = MatchFetcher::new(&mut conn, SOCKET_PATH);
+    let riot_api_key = std::env::var("RIOT_API_KEY").unwrap();
+    let mut fetcher = MatchFetcher::new(riot_api_key.as_str(), &mut conn);
+
+    // Socket
+    let mut socket = SocketSubscriber(UnixStream::connect(SOCKET_PATH).await.unwrap());
+    fetcher.add_match_subscriber(&mut socket);
+
+    // Database
+    let mut conn = db::establish_connection();
+    let mut db_sub = DatabaseSubscriber(&mut conn);
+    fetcher.add_match_subscriber(&mut db_sub);
+
     fetcher.start().await;
 }

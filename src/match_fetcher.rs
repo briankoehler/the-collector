@@ -1,12 +1,11 @@
 use crate::db::schema::account;
 use crate::db::schema::match_;
 use crate::db::schema::match_stats;
-use diesel::{ExpressionMethods, Insertable, QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
+use crate::match_subscriber::MatchSubscribe;
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, SqliteConnection};
 use riven::consts::RegionalRoute::AMERICAS;
 use riven::models::match_v5::Match;
 use riven::RiotApi;
-use std::io::Write;
-use std::os::unix::net::UnixStream;
 
 // TODO: Move to a runtime configuration.
 /// Seconds added to queries for new matches. This is necessary because
@@ -17,25 +16,27 @@ const START_TIME_BUFFER_SECS: i64 = 30;
 /// Fetches new matches for the accounts found from the provided database
 /// connection. Remains inactive until `start` is called.
 pub struct MatchFetcher<'a> {
-    accounts: Vec<String>,
-    riot_api_key: String,
+    riot_api_key: &'a str,
     conn: &'a mut SqliteConnection,
-    stream: UnixStream,
+    accounts: Vec<String>,
+    match_subscribers: Vec<Box<&'a mut dyn MatchSubscribe>>,
 }
 
 impl<'a> MatchFetcher<'a> {
-    /// Creates a new `MatchFetcher`. Will panic if `RIOT_API_KEY` is not set or
-    /// it fails to query the accounts table from the DB.
-    pub fn new(conn: &'a mut SqliteConnection, socket_path: &str) -> Self {
+    /// Creates a new `MatchFetcher`. Will panic if it fails to query the
+    /// accounts table from the DB.
+    pub fn new(riot_api_key: &'a str, conn: &'a mut SqliteConnection) -> Self {
         let accounts = account::table.select(account::puuid).load(conn).unwrap();
-        let riot_api_key = std::env::var("RIOT_API_KEY").unwrap();
-        let stream = UnixStream::connect(socket_path).unwrap();
         Self {
             accounts,
             riot_api_key,
             conn,
-            stream,
+            match_subscribers: vec![],
         }
+    }
+
+    pub fn add_match_subscriber(&mut self, subscriber: &'a mut impl MatchSubscribe) {
+        self.match_subscribers.push(Box::new(subscriber));
     }
 
     /// Starts the `MatchFetcher`. This is an involved process, but can be broken down to:
@@ -49,17 +50,18 @@ impl<'a> MatchFetcher<'a> {
             println!("Starting iteration");
             self.update_accounts();
             for puuid in self.accounts.clone() {
-                println!("Starting PUUID: {}", puuid);
+                println!("Starting PUUID: {puuid}");
                 // Get the latest match stats from DB for PUUID
                 // If found, determine end time and get new matches and data from Riot API
                 // If not found, get latest match and add to DB if necessary (and new match stats)
                 match self.get_latest_local_match_id(&puuid) {
                     Ok(local_match_id) => {
-                        println!("Found local match ID: {}", local_match_id);
+                        println!("Found local match ID: {local_match_id}");
                         let match_data = self.get_local_match_data(&local_match_id);
-                        let calculated_start_time = match_data.start_timestamp.timestamp()
-                            + match_data.duration
-                            + START_TIME_BUFFER_SECS;
+                        let calculated_start_time =
+                            match_data.start_timestamp.and_utc().timestamp()
+                                + match_data.duration
+                                + START_TIME_BUFFER_SECS;
 
                         let new_matches = self
                             .get_api_matches(&puuid, Some(calculated_start_time))
@@ -87,7 +89,8 @@ impl<'a> MatchFetcher<'a> {
         }
     }
 
-    // TODO: Trigger this from updates to the DB?
+    // TODO: Trigger this from updates to the DB? Then other actors could add
+    // new accounts
     fn update_accounts(&mut self) {
         self.accounts = account::table
             .select(account::puuid)
@@ -95,35 +98,15 @@ impl<'a> MatchFetcher<'a> {
             .unwrap();
     }
 
-    /// Inserts missing Match and MatchStat from provided API match data.
+    /// Calls subscribers' match data handlers
     async fn handle_api_match(&mut self, new_match_data: Match, puuid: &str) {
         let new_cached_match = crate::db::model::Match::new(&new_match_data);
         let new_cached_match_stats = crate::db::model::MatchStat::new(puuid, &new_match_data);
 
-        let inserted_match_count = new_cached_match
-            .insert_into(match_::table)
-            .on_conflict_do_nothing()
-            .execute(self.conn)
-            .unwrap();
-        let inserted_match_stats: crate::db::model::MatchStat = new_cached_match_stats
-            .insert_into(match_stats::table)
-            .get_result(self.conn)
-            .unwrap();
-
-        let _ = self
-            .stream
-            .write_all(
-                serde_json::to_string(&inserted_match_stats)
-                    .unwrap()
-                    .as_bytes(),
-            )
-            .unwrap();
-
-        println!("Inserted match count: {}", inserted_match_count);
-        println!(
-            "Inserted match stats: {:?}",
-            serde_json::to_string(&inserted_match_stats)
-        );
+        for subscriber in &mut self.match_subscribers {
+            subscriber.handle_match(&new_cached_match).await;
+            subscriber.handle_match_stats(&new_cached_match_stats).await;
+        }
     }
 
     /// Gets the latest match ID that a PUUID was tied to from the local DB.
@@ -144,7 +127,7 @@ impl<'a> MatchFetcher<'a> {
     /// Gets match IDs from Riot API using the provided PUUID, and start time if provided.  
     /// Does not use other filters in query.
     async fn get_api_matches(&self, puuid: &String, start_time: Option<i64>) -> Vec<String> {
-        RiotApi::new(self.riot_api_key.as_str())
+        RiotApi::new(self.riot_api_key)
             .match_v5()
             .get_match_ids_by_puuid(
                 AMERICAS,
@@ -162,7 +145,7 @@ impl<'a> MatchFetcher<'a> {
 
     /// Get match data from Riot APII using the provided match ID.
     async fn get_api_match_data(&self, match_id: &str) -> Match {
-        RiotApi::new(self.riot_api_key.as_str())
+        RiotApi::new(self.riot_api_key)
             .match_v5()
             .get_match(AMERICAS, match_id)
             .await
