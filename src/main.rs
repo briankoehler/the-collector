@@ -7,6 +7,7 @@ use tokio::net::UnixStream;
 mod db;
 mod match_fetcher;
 mod match_subscriber;
+mod riven_wrapper;
 mod server;
 
 const SOCKET_PATH: &str = "/tmp/lyte.socket";
