@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Workspace
+int-bot-ipc = { path = "../../lib/int-bot-ipc" }
+
+# 3P
 anyhow = "1.0.95"
 async-trait = { version = "0.1.83" }
 bincode = "1.3.3"

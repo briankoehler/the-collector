@@ -1143,6 +1143,7 @@ dependencies = [
  "async-trait",
  "bincode",
  "dotenv",
+ "int-bot-ipc",
  "nng",
  "poise",
  "riven",
@@ -1152,6 +1153,10 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "int-bot-db"
+version = "0.1.0"
 
 [[package]]
 name = "int-bot-ipc"
@@ -2610,6 +2615,7 @@ dependencies = [
  "bincode",
  "chrono",
  "dotenv",
+ "int-bot-ipc",
  "lazy_static",
  "nng",
  "riven",

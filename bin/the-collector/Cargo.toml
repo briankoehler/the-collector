@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Workspace
+int-bot-ipc = { path = "../../lib/int-bot-ipc" }
+
+# 3P
 chrono = { version = "0.4.38" }
 dotenv = { version = "0.15.0" }
 lazy_static = { version = "1.5.0" }

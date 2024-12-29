@@ -1,6 +1,7 @@
 [workspace]
 members = [
-    "the-collector",
-    "bot",
-    "int-bot-ipc",
+    "bin/the-collector",
+    "bin/bot",
+    "lib/int-bot-db",
+    "lib/int-bot-ipc",
 ]
