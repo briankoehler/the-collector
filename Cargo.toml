@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "the-collector",
+    "bot",
+    "int-bot-ipc",
+]
