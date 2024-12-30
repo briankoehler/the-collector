@@ -1,6 +1,6 @@
 use chrono::TimeDelta;
 use handler::{account::AccountHandler, match_data::MatchDataHandler, match_ids::MatchIdsHandler};
-use the_collector_db::DbHandler;
+use the_collector_db::{DbHandler, SqlitePoolOptions};
 use ipc::{BytesSender, INT_IPC_PATH};
 use nng::Socket;
 use riot_api::{
@@ -13,7 +13,6 @@ use riven::{
     models::{account_v1::Account, match_v5::Match},
     RiotApi,
 };
-use sqlx::sqlite::SqlitePoolOptions;
 use std::sync::Arc;
 use tokio::sync::mpsc::unbounded_channel;
 use tracing::{debug, info};

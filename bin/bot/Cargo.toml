@@ -17,7 +17,6 @@ nng = "1.0.1"
 poise = { version = "0.6.1" }
 riven = "2.57.0"
 serde = { version = "1.0.217", features = ["derive"] }
-sqlx = { version = "0.8", features = [ "chrono", "derive", "macros", "runtime-tokio", "sqlite" ] }
 tokio = { version = "1.37.0", features = ["full"] }
 tracing = { version = "0.1.41" }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }

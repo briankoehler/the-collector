@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use command::Data;
-use the_collector_db::DbHandler;
+use the_collector_db::{DbHandler, SqlitePoolOptions};
 use ipc::{BytesReceiver, IntNotification, INT_IPC_PATH};
 use nng::{Protocol, Socket};
 use poise::{
@@ -8,7 +8,6 @@ use poise::{
     Framework, FrameworkOptions,
 };
 use riven::RiotApi;
-use sqlx::sqlite::SqlitePoolOptions;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{error, info};

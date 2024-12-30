@@ -4,6 +4,9 @@ use sqlx::sqlite::SqliteQueryResult;
 use sqlx::types::chrono::DateTime;
 use sqlx::{Error, Pool, Sqlite};
 
+// Re-export so that clients can avoid having sqlx as a dependency
+pub use sqlx::sqlite::SqlitePoolOptions;
+
 pub mod model;
 
 // TODO: Job queue for DB tasks?
