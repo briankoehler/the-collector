@@ -2,7 +2,7 @@ use crate::{
     evaluator::MatchStatsEvaluator,
     ipc::{BytesSender, IntNotification},
 };
-use int_bot_db::DbHandler;
+use the_collector_db::DbHandler;
 use riven::models::match_v5::Match;
 use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedReceiver;

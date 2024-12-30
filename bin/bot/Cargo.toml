@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 # Workspace
-int-bot-ipc = { path = "../../lib/int-bot-ipc" }
-int-bot-db = { path = "../../lib/int-bot-db" }
+the-collector-ipc = { path = "../../lib/the-collector-ipc" }
+the-collector-db = { path = "../../lib/the-collector-db" }
 
 # 3P
 anyhow = "1.0.95"

@@ -2,6 +2,6 @@
 members = [
     "bin/the-collector",
     "bin/bot",
-    "lib/int-bot-db",
-    "lib/int-bot-ipc",
+    "lib/the-collector-db",
+    "lib/the-collector-ipc",
 ]

@@ -1143,29 +1143,17 @@ dependencies = [
  "async-trait",
  "bincode",
  "dotenv",
- "int-bot-db",
- "int-bot-ipc",
  "nng",
  "poise",
  "riven",
  "serde",
  "sqlx",
+ "the-collector-db",
+ "the-collector-ipc",
  "tokio",
  "tracing",
  "tracing-subscriber",
 ]
-
-[[package]]
-name = "int-bot-db"
-version = "0.1.0"
-dependencies = [
- "riven",
- "sqlx",
-]
-
-[[package]]
-name = "int-bot-ipc"
-version = "0.1.0"
 
 [[package]]
 name = "ipnet"
@@ -2620,17 +2608,29 @@ dependencies = [
  "bincode",
  "chrono",
  "dotenv",
- "int-bot-db",
- "int-bot-ipc",
  "lazy_static",
  "nng",
  "riven",
  "serde",
  "sqlx",
+ "the-collector-db",
+ "the-collector-ipc",
  "tokio",
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "the-collector-db"
+version = "0.1.0"
+dependencies = [
+ "riven",
+ "sqlx",
+]
+
+[[package]]
+name = "the-collector-ipc"
+version = "0.1.0"
 
 [[package]]
 name = "thiserror"

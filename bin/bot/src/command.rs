@@ -1,4 +1,4 @@
-use int_bot_db::DbHandler;
+use the_collector_db::DbHandler;
 use anyhow::Context;
 use riven::RiotApi;
 use std::sync::Arc;

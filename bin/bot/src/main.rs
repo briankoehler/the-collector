@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use command::Data;
-use int_bot_db::DbHandler;
+use the_collector_db::DbHandler;
 use ipc::{BytesReceiver, IntNotification, INT_IPC_PATH};
 use nng::{Protocol, Socket};
 use poise::{
