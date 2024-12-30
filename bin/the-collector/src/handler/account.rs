@@ -1,4 +1,4 @@
-use crate::db::DbHandler;
+use int_bot_db::DbHandler;
 use riven::models::account_v1::Account;
 use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedReceiver;

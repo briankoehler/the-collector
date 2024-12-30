@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use command::Data;
-use db::DbHandler;
+use int_bot_db::DbHandler;
 use ipc::{BytesReceiver, IntNotification, INT_IPC_PATH};
 use nng::{Protocol, Socket};
 use poise::{
@@ -15,7 +15,6 @@ use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
-mod db;
 mod ipc;
 
 struct Handler {

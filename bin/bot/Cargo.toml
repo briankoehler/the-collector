@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 # Workspace
 int-bot-ipc = { path = "../../lib/int-bot-ipc" }
+int-bot-db = { path = "../../lib/int-bot-db" }
 
 # 3P
 anyhow = "1.0.95"

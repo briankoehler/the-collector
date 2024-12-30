@@ -1,6 +1,4 @@
-#![allow(unused)]
-use chrono::NaiveDateTime;
-use sqlx::prelude::FromRow;
+use sqlx::{prelude::FromRow, types::chrono::NaiveDateTime};
 
 #[derive(Debug, FromRow)]
 pub struct Guild {

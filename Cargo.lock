@@ -1143,6 +1143,7 @@ dependencies = [
  "async-trait",
  "bincode",
  "dotenv",
+ "int-bot-db",
  "int-bot-ipc",
  "nng",
  "poise",
@@ -1157,6 +1158,10 @@ dependencies = [
 [[package]]
 name = "int-bot-db"
 version = "0.1.0"
+dependencies = [
+ "riven",
+ "sqlx",
+]
 
 [[package]]
 name = "int-bot-ipc"
@@ -2615,6 +2620,7 @@ dependencies = [
  "bincode",
  "chrono",
  "dotenv",
+ "int-bot-db",
  "int-bot-ipc",
  "lazy_static",
  "nng",

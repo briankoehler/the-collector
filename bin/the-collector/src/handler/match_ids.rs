@@ -1,4 +1,4 @@
-use crate::db::DbHandler;
+use int_bot_db::DbHandler;
 use crate::riot_api::match_data::MatchDataRequester;
 use crate::riot_api::Publish;
 use std::sync::Arc;

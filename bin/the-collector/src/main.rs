@@ -1,6 +1,6 @@
 use chrono::TimeDelta;
-use db::DbHandler;
 use handler::{account::AccountHandler, match_data::MatchDataHandler, match_ids::MatchIdsHandler};
+use int_bot_db::DbHandler;
 use ipc::{BytesSender, INT_IPC_PATH};
 use nng::Socket;
 use riot_api::{
@@ -21,7 +21,6 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
 
-mod db;
 mod evaluator;
 mod handler;
 mod ipc;
