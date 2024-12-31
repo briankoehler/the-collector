@@ -28,7 +28,6 @@ struct Handler {
     message_builder: Arc<MessageBuilder>,
 }
 
-// TODO: Add event for adding guild to DB on join
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
@@ -59,7 +58,6 @@ impl EventHandler for Handler {
                         summoner_match.puuid, summoner_match.match_id
                     );
 
-                    // TODO: Construct message
                     let message = message_builder.build_message(&summoner_match);
 
                     let followers = db_handler

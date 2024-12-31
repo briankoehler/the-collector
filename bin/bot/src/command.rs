@@ -1,4 +1,5 @@
 use anyhow::Context;
+use poise::CreateReply;
 use riven::RiotApi;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
@@ -101,7 +102,8 @@ pub async fn follow(
         .insert_guild_following(guild_id.into(), &account.puuid)
         .await?;
 
-    ctx.reply("Setup summoner to be followed.").await?;
+    let message = format!("Followed {name}#{tag}");
+    ctx.reply(message).await?;
     Ok(())
 }
 
