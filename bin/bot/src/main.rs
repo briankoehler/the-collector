@@ -4,7 +4,10 @@ use command::Data;
 use evaluator::MatchStatsEvaluator;
 use message::MessageBuilder;
 use poise::{
-    serenity_prelude::{Client, Context, EventHandler, GatewayIntents, Ready},
+    serenity_prelude::{
+        Client, Connection, Context, EventHandler, GatewayIntents, Guild, GuildChannel, Message,
+        Ready, UnavailableGuild,
+    },
     Framework, FrameworkOptions,
 };
 use riven::RiotApi;
@@ -79,6 +82,23 @@ impl EventHandler for Handler {
                 }
             }
         });
+    }
+
+    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
+        todo!("If guild is new, add to database (without a channel ID")
+    }
+
+    async fn guild_delete(&self, ctx: Context, incomplete: UnavailableGuild, full: Option<Guild>) {
+        todo!("Remove guild from database (or add a new column to set to non-active)")
+    }
+
+    async fn channel_delete(
+        &self,
+        ctx: Context,
+        channel: GuildChannel,
+        messages: Option<Vec<Message>>,
+    ) {
+        todo!("Update database if deleted channel is the notification channel")
     }
 }
 
