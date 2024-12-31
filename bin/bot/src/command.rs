@@ -1,5 +1,4 @@
 use anyhow::Context;
-use poise::CreateReply;
 use riven::RiotApi;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
@@ -14,7 +13,7 @@ pub struct Data {
 
 // TODO: Support optionally specified leaderboard size
 /// Displays a leaderboard of the top ints
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn leaderboard(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -62,7 +61,7 @@ pub async fn leaderboard(
 }
 
 /// Subscribes the guild of the current context to the provided summoner
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn follow(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
     #[description = "Summoner Name"] name: String,
@@ -108,7 +107,7 @@ pub async fn follow(
 }
 
 /// Unsubscribes the guild of the current context to the provided summoner
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn unfollow(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
     #[description = "Summoner Name"] name: String,
@@ -119,7 +118,7 @@ pub async fn unfollow(
 }
 
 /// Display statistics of the provided summoner
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn stats(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
     #[description = "Summoner Name"] name: String,
@@ -130,7 +129,7 @@ pub async fn stats(
 }
 
 /// Set the channel that notifications are sent to
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn here(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -146,7 +145,7 @@ pub async fn here(
 }
 
 /// Set the channel that notifications are sent to
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn unhere(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -155,7 +154,7 @@ pub async fn unhere(
 
 /// Display a list of the summoners that the guild of the current context is
 /// subscribed to
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn list(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -189,7 +188,7 @@ pub async fn list(
 }
 
 /// Display information about the bot (e.g. version)
-#[poise::command(slash_command, prefix_command, guild_only)]
+#[poise::command(slash_command, guild_only)]
 pub async fn about(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

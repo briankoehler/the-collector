@@ -5,8 +5,8 @@ use evaluator::MatchStatsEvaluator;
 use message::MessageBuilder;
 use poise::{
     serenity_prelude::{
-        Client, Connection, Context, EventHandler, GatewayIntents, Guild, GuildChannel, Message,
-        Ready, UnavailableGuild,
+        Client, Context, EventHandler, GatewayIntents, Guild, GuildChannel, Message, Ready,
+        UnavailableGuild,
     },
     Framework, FrameworkOptions,
 };
