@@ -10,6 +10,7 @@ pub use sqlx::sqlite::SqlitePoolOptions;
 pub mod model;
 
 // TODO: Job queue for DB tasks?
+// TODO: Improve this organization
 
 /// Wrapper around common database operations — by using this wrapper, clients
 /// of [`DbHandler`] can remain database agnostic.
