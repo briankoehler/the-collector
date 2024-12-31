@@ -114,7 +114,6 @@ pub async fn unfollow(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _guild_id = ctx.guild_id().unwrap();
     todo!();
-    Ok(())
 }
 
 /// Display statistics of the provided summoner
@@ -126,7 +125,6 @@ pub async fn stats(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _guild_id = ctx.guild_id().unwrap();
     todo!();
-    Ok(())
 }
 
 /// Set the channel that notifications are sent to
@@ -143,6 +141,14 @@ pub async fn here(
     ctx.reply("Setting notification channel to this channel.")
         .await?;
     Ok(())
+}
+
+/// Set the channel that notifications are sent to
+#[poise::command(slash_command, prefix_command, guild_only)]
+pub async fn unhere(
+    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    todo!("Unset the notification channel")
 }
 
 /// Display a list of the summoners that the guild of the current context is
@@ -187,5 +193,4 @@ pub async fn about(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _guild_id = ctx.guild_id().unwrap();
     todo!();
-    Ok(())
 }
