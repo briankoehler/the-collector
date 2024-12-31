@@ -139,8 +139,11 @@ pub async fn here(
         .db_handler
         .update_channel(guild_id.into(), channel_id.into())
         .await?;
-    ctx.reply("Setting notification channel to this channel.")
-        .await?;
+    let message = format!(
+        "Setting notification channel to **{}**.",
+        ctx.guild_channel().await.unwrap().name
+    );
+    ctx.reply(message).await?;
     Ok(())
 }
 

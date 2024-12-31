@@ -88,10 +88,18 @@ impl EventHandler for Handler {
         self.db_handler.insert_guild(guild.id.into()).await.unwrap();
     }
 
-    async fn guild_delete(&self, _ctx: Context, incomplete: UnavailableGuild, _full: Option<Guild>) {
+    async fn guild_delete(
+        &self,
+        _ctx: Context,
+        incomplete: UnavailableGuild,
+        _full: Option<Guild>,
+    ) {
         if !incomplete.unavailable {
             info!("Removing guild with ID {:?} from database.", incomplete.id);
-            self.db_handler.delete_guild(incomplete.id.into()).await.unwrap();
+            self.db_handler
+                .delete_guild(incomplete.id.into())
+                .await
+                .unwrap();
         }
     }
 
@@ -101,9 +109,16 @@ impl EventHandler for Handler {
         channel: GuildChannel,
         _messages: Option<Vec<Message>>,
     ) {
-        let result = self.db_handler.delete_channel_id(channel.id.into()).await.unwrap();
+        let result = self
+            .db_handler
+            .delete_channel_id(channel.id.into())
+            .await
+            .unwrap();
         if result.rows_affected() >= 1 {
-            info!("Deleted {} channel IDs from database.", result.rows_affected());
+            info!(
+                "Deleted {} channel IDs from database.",
+                result.rows_affected()
+            );
         }
     }
 }

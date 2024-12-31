@@ -187,12 +187,15 @@ impl DbHandler {
         guild_id: u64,
         channel_id: u64,
     ) -> Result<SqliteQueryResult, Error> {
-        // TODO: Handle channel already existing
-        sqlx::query("INSERT INTO guild (id, channel_id) VALUES (?, ?)")
-            .bind(guild_id as i64)
-            .bind(channel_id as i64)
-            .execute(&self.pool)
-            .await
+        let guild_id = guild_id as i64;
+        let channel_id = channel_id as i64;
+        sqlx::query!(
+            "UPDATE guild SET channel_id = ? WHERE id = ?",
+            channel_id,
+            guild_id
+        )
+        .execute(&self.pool)
+        .await
     }
 
     pub async fn get_leaderboard<const SIZE: usize>(
