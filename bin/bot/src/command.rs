@@ -37,7 +37,7 @@ pub async fn leaderboard(
             summoner_match.champion_id  // TODO: Convert to champion name
         )
     });
-    let mut message = String::from("**INT LEADERBOARD\n-------------------------\n");
+    let mut message = String::from("**INT LEADERBOARD**\n**-------------------------**\n");
     for (index, line) in lines.iter().enumerate() {
         message += &format!("**{})** {}\n", index, line);
     }
@@ -157,7 +157,7 @@ pub async fn list(
             guild_following.puuid // TODO: Convert to "game_name#tag" format
         )
     });
-    let mut message = String::from("**Followed Summoners\n-------------------------\n");
+    let mut message = String::from("**Followed Summoners**\n**-------------------------**\n");
     for (index, line) in lines.enumerate() {
         message += &format!("**{})** {}\n", index, line);
     }
