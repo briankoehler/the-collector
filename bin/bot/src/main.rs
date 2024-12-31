@@ -82,21 +82,29 @@ impl EventHandler for Handler {
         });
     }
 
-    async fn guild_create(&self, ctx: Context, guild: Guild, is_new: Option<bool>) {
-        todo!("If guild is new, add to database (without a channel ID")
+    async fn guild_create(&self, _ctx: Context, guild: Guild, _is_new: Option<bool>) {
+        // TODO: Use cached is_new after learning about it
+        info!("Adding guild with ID {:?} to database.", guild.id);
+        self.db_handler.insert_guild(guild.id.into()).await.unwrap();
     }
 
-    async fn guild_delete(&self, ctx: Context, incomplete: UnavailableGuild, full: Option<Guild>) {
-        todo!("Remove guild from database (or add a new column to set to non-active)")
+    async fn guild_delete(&self, _ctx: Context, incomplete: UnavailableGuild, _full: Option<Guild>) {
+        if !incomplete.unavailable {
+            info!("Removing guild with ID {:?} from database.", incomplete.id);
+            self.db_handler.delete_guild(incomplete.id.into()).await.unwrap();
+        }
     }
 
     async fn channel_delete(
         &self,
-        ctx: Context,
+        _ctx: Context,
         channel: GuildChannel,
-        messages: Option<Vec<Message>>,
+        _messages: Option<Vec<Message>>,
     ) {
-        todo!("Update database if deleted channel is the notification channel")
+        let result = self.db_handler.delete_channel_id(channel.id.into()).await.unwrap();
+        if result.rows_affected() >= 1 {
+            info!("Deleted {} channel IDs from database.", result.rows_affected());
+        }
     }
 }
 

@@ -114,6 +114,22 @@ impl DbHandler {
         .await
     }
 
+    /// Insert guild data
+    pub async fn insert_guild(&self, guild_id: u64) -> Result<SqliteQueryResult, Error> {
+        let guild_id = guild_id as i64;
+        sqlx::query!("INSERT OR IGNORE INTO guild (id) VALUES (?)", guild_id)
+            .execute(&self.pool)
+            .await
+    }
+
+    /// Delete guild data
+    pub async fn delete_guild(&self, guild_id: u64) -> Result<SqliteQueryResult, Error> {
+        let guild_id = guild_id as i64;
+        sqlx::query!("DELETE FROM guild WHERE id = ?", guild_id)
+            .execute(&self.pool)
+            .await
+    }
+
     /// Insert match data
     pub async fn insert_match(&self, data: &Match) -> Result<SqliteQueryResult, Error> {
         let winning_team_id = get_winning_team(&data);
@@ -162,7 +178,7 @@ impl DbHandler {
             .await
     }
 
-    pub async fn delete_channel_id(&self, guild_id: u64) -> Result<SqliteQueryResult, Error> {
+    pub async fn delete_channel_id(&self, channel_id: u64) -> Result<SqliteQueryResult, Error> {
         todo!()
     }
 
