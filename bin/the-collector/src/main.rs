@@ -1,8 +1,6 @@
 use chrono::TimeDelta;
 use handler::{account::AccountHandler, match_data::MatchDataHandler, match_ids::MatchIdsHandler};
 use the_collector_db::{DbHandler, SqlitePoolOptions};
-use ipc::{BytesSender, INT_IPC_PATH};
-use nng::Socket;
 use riot_api::{
     account::AccountRequester,
     match_data::MatchDataRequester,
@@ -13,6 +11,7 @@ use riven::{
     models::{account_v1::Account, match_v5::Match},
     RiotApi,
 };
+use the_collector_ipc::{r#pub::IpcPublisher, IPC_SUMMONER_MATCH_PATH};
 use std::sync::Arc;
 use tokio::sync::mpsc::unbounded_channel;
 use tracing::{debug, info};
@@ -22,7 +21,6 @@ use tracing_subscriber::{fmt, EnvFilter};
 
 mod evaluator;
 mod handler;
-mod ipc;
 mod riot_api;
 
 const ITERATION_SECS: u64 = 10;
@@ -80,10 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let account_handler = AccountHandler::new(db_handler.clone(), account_rx);
     tokio::task::spawn(account_handler.start());
 
-    let client = Arc::new(Socket::new(nng::Protocol::Push0)?);
-    client.dial(INT_IPC_PATH)?;
-    let ipc_sender = BytesSender::new(client);
-    let match_data_handler = MatchDataHandler::new(db_handler.clone(), match_rx, ipc_sender);
+    let match_data_handler = MatchDataHandler::new(db_handler.clone(), match_rx, IpcPublisher::new(IPC_SUMMONER_MATCH_PATH)?);
     tokio::task::spawn(match_data_handler.start());
 
     let match_ids_handler = MatchIdsHandler::new(db_handler.clone(), matches_rx, match_requester);

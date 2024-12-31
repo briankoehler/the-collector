@@ -25,13 +25,13 @@ impl DbHandler {
     }
 
     /// Get a summoner from the database given the PUUID.
-    pub async fn get_summoner(&self, puuid: &str) -> Result<model::Summoner, Error> {
+    pub async fn get_summoner(&self, puuid: &str) -> Result<Option<model::Summoner>, Error> {
         sqlx::query_as!(
             model::Summoner,
             "SELECT * FROM summoner WHERE puuid = ?",
             puuid
         )
-        .fetch_one(&self.pool)
+        .fetch_optional(&self.pool)
         .await
     }
 
@@ -190,6 +190,10 @@ impl DbHandler {
             .bind(puuid)
             .execute(&self.pool)
             .await
+    }
+
+    pub async fn get_summoner_match(&self, puuid: &str, match_id: &str) -> Result<Option<model::SummonerMatch>, Error> {
+        todo!()
     }
 }
 

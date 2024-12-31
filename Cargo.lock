@@ -2604,13 +2604,10 @@ dependencies = [
 name = "the-collector"
 version = "0.1.0"
 dependencies = [
- "bincode",
  "chrono",
  "dotenv",
  "lazy_static",
- "nng",
  "riven",
- "serde",
  "the-collector-db",
  "the-collector-ipc",
  "tokio",
@@ -2623,12 +2620,20 @@ name = "the-collector-db"
 version = "0.1.0"
 dependencies = [
  "riven",
+ "serde",
  "sqlx",
 ]
 
 [[package]]
 name = "the-collector-ipc"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "nng",
+ "serde",
+ "tokio",
+]
 
 [[package]]
 name = "thiserror"

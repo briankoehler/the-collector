@@ -1,19 +1,20 @@
+use serde::{Deserialize, Serialize};
 use sqlx::{prelude::FromRow, types::chrono::NaiveDateTime};
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Guild {
     pub id: i64,
     pub channel_id: Option<i64>,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Summoner {
     pub puuid: String,
     pub game_name: String,
     pub tag: String,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Match {
     pub id: String,
     pub start_time: NaiveDateTime,
@@ -25,13 +26,13 @@ pub struct Match {
     pub surrender: bool,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct GuildFollowing {
     pub guild_id: i64,
     pub puuid: String,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct SummonerMatch {
     pub puuid: String,
     pub match_id: String,

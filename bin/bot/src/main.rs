@@ -1,23 +1,21 @@
 use async_trait::async_trait;
 use command::Data;
 use the_collector_db::{DbHandler, SqlitePoolOptions};
-use ipc::{BytesReceiver, IntNotification, INT_IPC_PATH};
-use nng::{Protocol, Socket};
 use poise::{
     serenity_prelude::{Client, Context, EventHandler, GatewayIntents, Ready},
     Framework, FrameworkOptions,
 };
 use riven::RiotApi;
+use the_collector_ipc::{sub::IpcSubscriber, SummonerMatchQuery, IPC_SUMMONER_MATCH_PATH};
 use std::sync::Arc;
-use tokio::sync::Mutex;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
-mod ipc;
 
 struct Handler {
-    rx_int: Arc<Mutex<BytesReceiver<IntNotification>>>,
+    subscriber: Arc<IpcSubscriber<SummonerMatchQuery>>,
+    db_handler: Arc<DbHandler>,
 }
 
 // TODO: Add event for adding guild to DB on join
@@ -28,32 +26,33 @@ impl EventHandler for Handler {
         // TODO: Investigate alternative methods of creating this task
         info!("{} has connected", ready.user.name);
 
-        let rx_int = self.rx_int.clone();
+        let subscriber = self.subscriber.clone();
+        let db_handler = self.db_handler.clone();
         tokio::task::spawn(async move {
             loop {
-                // let (mut stream, _) = rx_int.accept().await.unwrap();
+                let summoner_match_query = subscriber.recv().await.unwrap();
+                debug!("Got summoner match query: {summoner_match_query:?}");
+                let Some(summoner_match) = db_handler.get_summoner_match(&summoner_match_query.puuid, &summoner_match_query.match_id).await.unwrap() else {
+                    error!("Failed to get summoner match from {summoner_match_query:?}");
+                    continue;
+                };
 
-                loop {
-                    // stream.readable().await.unwrap();
-                    // let mut buf = vec![];
-                    // let num_bytes = stream.read_to_end(&mut buf).await.expect("No I/O errors");
-                    // debug!("Read {num_bytes} bytes");
+                // TODO: Evaluate as int
+                let is_int = true;
 
-                    // let notification = bincode::deserialize::<IntNotification>(&buf).unwrap();
+                if is_int {
+                    debug!("Evaluated match as int: (PUUID: {:?}, Match ID: {:?})", summoner_match.puuid, summoner_match.match_id);
+                    
+                    // TODO: Construct message
+                    let message = format!("{} just died {} times.", summoner_match.puuid, summoner_match.deaths);
 
-                    let mut lock = rx_int.lock().await;
-                    let notification = lock.recv().await.unwrap();
-                    info!("Got notification: {notification:?}");
-                    let channel = ctx
-                        .http
-                        .get_channel(notification.channel_id.into())
-                        .await
-                        .unwrap()
-                        .guild()
-                        .unwrap();
-
-                    if let Err(e) = channel.say(&ctx.http, notification.message).await {
-                        error!("Failed sending message: {e:?}");
+                    let followers = db_handler.get_following_guilds(&summoner_match.puuid).await.unwrap();
+                    debug!("Sending a message to {} guilds", followers.len());
+                    for follower in followers {
+                        let channel = ctx.http.get_channel((follower.channel_id.unwrap() as u64).into()).await.unwrap().guild().unwrap();
+                        if let Err(e) = channel.say(&ctx.http, &message).await {
+                            error!("Failed sending message: {e:?}");
+                        }
                     }
                 }
             }
@@ -109,12 +108,10 @@ async fn main() {
         .build();
 
     // TODO: Consolidate the event handler to the poise framework builder
-    let client = Socket::new(Protocol::Pull0).unwrap();
-    client.listen(INT_IPC_PATH).unwrap();
-    let rx_int = Arc::new(Mutex::new(BytesReceiver::new(Arc::new(client))));
+    let subscriber = Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH).unwrap());
     let mut client = Client::builder(token, intents)
         .framework(framework)
-        .event_handler(Handler { rx_int })
+        .event_handler(Handler { subscriber, db_handler })
         .await
         .expect("Client should be created");
 

@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 riven = { version = "2.50.0" }
+serde = { version = "1.0.203", features = ["derive"] }
 sqlx = { version = "0.8", features = [ "chrono", "derive", "macros", "runtime-tokio", "sqlite" ] }
