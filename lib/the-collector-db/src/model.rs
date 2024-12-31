@@ -12,6 +12,7 @@ pub struct Summoner {
     pub puuid: String,
     pub game_name: String,
     pub tag: String,
+    pub create_time: NaiveDateTime,
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]

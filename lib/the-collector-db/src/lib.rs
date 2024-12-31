@@ -1,7 +1,7 @@
 use riven::models::account_v1::Account;
 use riven::models::match_v5::Match;
 use sqlx::sqlite::SqliteQueryResult;
-use sqlx::types::chrono::DateTime;
+use sqlx::types::chrono::{self, DateTime};
 use sqlx::{Error, Pool, Sqlite};
 
 // Re-export so that clients can avoid having sqlx as a dependency
@@ -100,12 +100,18 @@ impl DbHandler {
 
     /// Insert account data
     pub async fn insert_summoner(&self, account: Account) -> Result<SqliteQueryResult, Error> {
-        sqlx::query("INSERT INTO summoner (puuid, game_name, tag) VALUES (?, ?, ?)")
-            .bind(account.puuid)
-            .bind(account.game_name.unwrap())
-            .bind(account.tag_line.unwrap())
-            .execute(&self.pool)
-            .await
+        let now_ms = chrono::Utc::now().timestamp_millis();
+        let game_name = account.game_name.as_ref().unwrap();
+        let tag = &account.tag_line.as_ref().unwrap();
+        sqlx::query!(
+            "INSERT INTO summoner (puuid, game_name, tag, create_time) VALUES (?, ?, ?, ?)",
+            account.puuid,
+            game_name,
+            tag,
+            now_ms
+        )
+        .execute(&self.pool)
+        .await
     }
 
     /// Insert match data
@@ -185,11 +191,14 @@ impl DbHandler {
         guild_id: u64,
         puuid: &str,
     ) -> Result<SqliteQueryResult, Error> {
-        sqlx::query("INSERT INTO guild_following (guild_id, puuid) VALUES (?, ?)")
-            .bind(guild_id as i64)
-            .bind(puuid)
-            .execute(&self.pool)
-            .await
+        let guild_id = guild_id as i64;
+        sqlx::query!(
+            "INSERT INTO guild_following (guild_id, puuid) VALUES (?, ?)",
+            guild_id,
+            puuid
+        )
+        .execute(&self.pool)
+        .await
     }
 
     pub async fn get_summoner_match(

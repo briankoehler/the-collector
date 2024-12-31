@@ -97,29 +97,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // duplicate requests (or have to implement logic to avoid duplicates)
         let summoners = db_handler.get_summoners().await?;
         for summoner in summoners {
-            let latest_match = db_handler
+            // If we have a latest match to use, use that to determine when to query from.
+            // Otherwise, use the time of the summoner being added to the database. This
+            // avoids the workaround used for a long time in which the last match prior to
+            // the summoner being added to the database had to be added and processed first.
+            let start_time = match db_handler
                 .get_summoner_latest_match(&summoner.puuid)
-                .await?;
-            // If we have data already, do not provide a count to fetch. Otherwise, only
-            // get the most recent match. Additionally, calculate the start time to query
-            // by based on the end time of the last match
-            let count = match latest_match {
-                Some(_) => None,
-                None => Some(1),
-            };
-            let start_time = latest_match.map(|latest_match| {
-                latest_match
+                .await?
+            {
+                Some(latest_match) => latest_match
                     .start_time
                     .checked_add_signed(TimeDelta::milliseconds(latest_match.duration))
-                    .expect("Time fits")
-                    .and_utc()
-                    .timestamp()
-            });
+                    .expect("Time fits"),
+                None => summoner.create_time,
+            }
+            .and_utc()
+            .timestamp();
 
             let query = GetMatchIdsQuery {
                 puuid: summoner.puuid.into(),
-                start_time,
-                count,
+                start_time: Some(start_time),
+                count: None,
             };
             info!("GetMatchIdsQuery: {query:?}");
             matches_requester.push(query).await;
