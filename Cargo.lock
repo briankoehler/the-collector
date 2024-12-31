@@ -1144,6 +1144,7 @@ dependencies = [
  "dotenv",
  "lazy_static",
  "poise",
+ "rand",
  "riven",
  "the-collector-db",
  "the-collector-ipc",

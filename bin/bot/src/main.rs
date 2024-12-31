@@ -2,6 +2,7 @@ use anyhow::Context as _;
 use async_trait::async_trait;
 use command::Data;
 use evaluator::MatchStatsEvaluator;
+use message::MessageBuilder;
 use poise::{
     serenity_prelude::{Client, Context, EventHandler, GatewayIntents, Ready},
     Framework, FrameworkOptions,
@@ -15,11 +16,13 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 
 mod command;
 mod evaluator;
+mod message;
 
 struct Handler {
     subscriber: Arc<IpcSubscriber<SummonerMatchQuery>>,
     db_handler: Arc<DbHandler>,
     evaluator: Arc<MatchStatsEvaluator>,
+    message_builder: Arc<MessageBuilder>,
 }
 
 // TODO: Add event for adding guild to DB on join
@@ -33,6 +36,7 @@ impl EventHandler for Handler {
         let subscriber = self.subscriber.clone();
         let db_handler = self.db_handler.clone();
         let evaluator = self.evaluator.clone();
+        let message_builder = self.message_builder.clone();
         tokio::task::spawn(async move {
             loop {
                 let summoner_match_query = subscriber.recv().await.unwrap();
@@ -53,10 +57,7 @@ impl EventHandler for Handler {
                     );
 
                     // TODO: Construct message
-                    let message = format!(
-                        "{} just died {} times.",
-                        summoner_match.puuid, summoner_match.deaths
-                    );
+                    let message = message_builder.build_message(&summoner_match);
 
                     let followers = db_handler
                         .get_following_guilds(&summoner_match.puuid)
@@ -129,14 +130,13 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // TODO: Consolidate the event handler to the poise framework builder
-    let subscriber = Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?);
-    let evaluator = Arc::new(MatchStatsEvaluator::new());
     let mut client = Client::builder(token, intents)
         .framework(framework)
         .event_handler(Handler {
-            subscriber,
             db_handler,
-            evaluator,
+            subscriber: Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?),
+            evaluator: Arc::new(MatchStatsEvaluator::new()),
+            message_builder: Arc::new(MessageBuilder::new()),
         })
         .await
         .context("Failed to create client")?;
