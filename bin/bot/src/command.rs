@@ -2,6 +2,7 @@ use anyhow::Context;
 use riven::RiotApi;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
+use tokio_stream::StreamExt;
 
 const LEADERBOARD_SIZE: usize = 10;
 
@@ -27,19 +28,31 @@ pub async fn leaderboard(
 
     // Format the leaderboard message
     // TODO: Examine better ways to handle this
-    let lines = leaderboard_data.map(|summoner_match| {
+    let mut message = String::from("**INT LEADERBOARD**\n**-------------------------**\n");
+    let lines = tokio_stream::iter(leaderboard_data).then(|summoner_match| async move {
+        let summoner = ctx
+            .data()
+            .db_handler
+            .get_summoner(&summoner_match.puuid)
+            .await
+            .unwrap()
+            .unwrap();
+        let summoner_name = format!("{}#{}", summoner.game_name, summoner.tag);
         format!(
             "{}/{}/{} - {} ({})",
             summoner_match.kills,
             summoner_match.deaths,
             summoner_match.assists,
-            summoner_match.puuid,       // TODO: Convert to summoner name
-            summoner_match.champion_id  // TODO: Convert to champion name
+            summoner_name,
+            summoner_match.champion_id // TODO: Convert to champion name
         )
     });
-    let mut message = String::from("**INT LEADERBOARD**\n**-------------------------**\n");
-    for (index, line) in lines.iter().enumerate() {
+    tokio::pin!(lines);
+
+    let mut index = 1;
+    while let Some(line) = lines.next().await {
         message += &format!("**{})** {}\n", index, line);
+        index += 1;
     }
 
     // Send the message

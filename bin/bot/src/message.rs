@@ -6,7 +6,7 @@ const TEMPLATES: [&str; 4] = [
     "%s just died **%d times**.",
     "Solid **%d bomb** by %s.",
     "**BREAKING NEWS:** %S INTS ANOTHER GAME WITH **%d DEATHS**.",
-    "**NEWS FLASH:** %S DROPS A **%d DEATH** GAME."
+    "**NEWS FLASH:** %S DROPS A **%d DEATH** GAME.",
 ];
 
 pub struct MessageBuilder {
