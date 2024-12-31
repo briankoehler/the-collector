@@ -1,6 +1,6 @@
-use the_collector_db::DbHandler;
 use riven::models::account_v1::Account;
 use std::sync::Arc;
+use the_collector_db::DbHandler;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::{debug, error};
 

@@ -192,7 +192,11 @@ impl DbHandler {
             .await
     }
 
-    pub async fn get_summoner_match(&self, puuid: &str, match_id: &str) -> Result<Option<model::SummonerMatch>, Error> {
+    pub async fn get_summoner_match(
+        &self,
+        puuid: &str,
+        match_id: &str,
+    ) -> Result<Option<model::SummonerMatch>, Error> {
         todo!()
     }
 }

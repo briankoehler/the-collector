@@ -1,6 +1,6 @@
-use std::{marker::PhantomData, sync::Arc};
 use nng::{Error, Socket};
 use serde::de::DeserializeOwned;
+use std::{marker::PhantomData, sync::Arc};
 
 #[derive(Debug)]
 pub struct IpcSubscriber<T: DeserializeOwned> {
@@ -21,9 +21,7 @@ impl<T: DeserializeOwned + Send + Sync> IpcSubscriber<T> {
     // TODO: Return specific error types
     pub async fn recv(&self) -> anyhow::Result<T> {
         let socket = self.socket.clone();
-        let bytes = tokio::task::spawn_blocking(move || {
-            socket.recv()
-        }).await??;
+        let bytes = tokio::task::spawn_blocking(move || socket.recv()).await??;
         let data = bincode::deserialize(&bytes)?;
         Ok(data)
     }

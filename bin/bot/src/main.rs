@@ -1,21 +1,24 @@
 use async_trait::async_trait;
 use command::Data;
-use the_collector_db::{DbHandler, SqlitePoolOptions};
+use evaluator::MatchStatsEvaluator;
 use poise::{
     serenity_prelude::{Client, Context, EventHandler, GatewayIntents, Ready},
     Framework, FrameworkOptions,
 };
 use riven::RiotApi;
-use the_collector_ipc::{sub::IpcSubscriber, SummonerMatchQuery, IPC_SUMMONER_MATCH_PATH};
 use std::sync::Arc;
+use the_collector_db::{DbHandler, SqlitePoolOptions};
+use the_collector_ipc::{sub::IpcSubscriber, SummonerMatchQuery, IPC_SUMMONER_MATCH_PATH};
 use tracing::{debug, error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
+mod evaluator;
 
 struct Handler {
     subscriber: Arc<IpcSubscriber<SummonerMatchQuery>>,
     db_handler: Arc<DbHandler>,
+    evaluator: Arc<MatchStatsEvaluator>,
 }
 
 // TODO: Add event for adding guild to DB on join
@@ -28,28 +31,45 @@ impl EventHandler for Handler {
 
         let subscriber = self.subscriber.clone();
         let db_handler = self.db_handler.clone();
+        let evaluator = self.evaluator.clone();
         tokio::task::spawn(async move {
             loop {
                 let summoner_match_query = subscriber.recv().await.unwrap();
                 debug!("Got summoner match query: {summoner_match_query:?}");
-                let Some(summoner_match) = db_handler.get_summoner_match(&summoner_match_query.puuid, &summoner_match_query.match_id).await.unwrap() else {
+                let Some(summoner_match) = db_handler
+                    .get_summoner_match(&summoner_match_query.puuid, &summoner_match_query.match_id)
+                    .await
+                    .unwrap()
+                else {
                     error!("Failed to get summoner match from {summoner_match_query:?}");
                     continue;
                 };
 
-                // TODO: Evaluate as int
-                let is_int = true;
+                if evaluator.is_int(&summoner_match) {
+                    debug!(
+                        "Evaluated match as int: (PUUID: {:?}, Match ID: {:?})",
+                        summoner_match.puuid, summoner_match.match_id
+                    );
 
-                if is_int {
-                    debug!("Evaluated match as int: (PUUID: {:?}, Match ID: {:?})", summoner_match.puuid, summoner_match.match_id);
-                    
                     // TODO: Construct message
-                    let message = format!("{} just died {} times.", summoner_match.puuid, summoner_match.deaths);
+                    let message = format!(
+                        "{} just died {} times.",
+                        summoner_match.puuid, summoner_match.deaths
+                    );
 
-                    let followers = db_handler.get_following_guilds(&summoner_match.puuid).await.unwrap();
+                    let followers = db_handler
+                        .get_following_guilds(&summoner_match.puuid)
+                        .await
+                        .unwrap();
                     debug!("Sending a message to {} guilds", followers.len());
                     for follower in followers {
-                        let channel = ctx.http.get_channel((follower.channel_id.unwrap() as u64).into()).await.unwrap().guild().unwrap();
+                        let channel = ctx
+                            .http
+                            .get_channel((follower.channel_id.unwrap() as u64).into())
+                            .await
+                            .unwrap()
+                            .guild()
+                            .unwrap();
                         if let Err(e) = channel.say(&ctx.http, &message).await {
                             error!("Failed sending message: {e:?}");
                         }
@@ -109,9 +129,14 @@ async fn main() {
 
     // TODO: Consolidate the event handler to the poise framework builder
     let subscriber = Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH).unwrap());
+    let evaluator = Arc::new(MatchStatsEvaluator::new());
     let mut client = Client::builder(token, intents)
         .framework(framework)
-        .event_handler(Handler { subscriber, db_handler })
+        .event_handler(Handler {
+            subscriber,
+            db_handler,
+            evaluator,
+        })
         .await
         .expect("Client should be created");
 

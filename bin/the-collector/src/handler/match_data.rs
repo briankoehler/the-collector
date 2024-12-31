@@ -1,7 +1,7 @@
-use the_collector_db::DbHandler;
 use riven::models::match_v5::Match;
-use the_collector_ipc::{r#pub::IpcPublisher, SummonerMatchQuery};
 use std::sync::Arc;
+use the_collector_db::DbHandler;
+use the_collector_ipc::{r#pub::IpcPublisher, SummonerMatchQuery};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::{debug, error};
 
@@ -28,7 +28,7 @@ impl MatchDataHandler {
     /// Iterate on trying to receive data from [`Self::rx_channel`], and then
     // 1. Insert general data into DB
     // 2. Insert followed data into DB
-    // 3. Send match ID to 
+    // 3. Send match ID to
     #[tracing::instrument]
     pub async fn start(mut self) {
         loop {
@@ -60,7 +60,6 @@ impl MatchDataHandler {
                 };
                 self.publisher.publish(message).await.unwrap();
             }
-
         }
     }
 }

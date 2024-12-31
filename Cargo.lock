@@ -1141,12 +1141,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bincode",
  "dotenv",
- "nng",
+ "lazy_static",
  "poise",
  "riven",
- "serde",
  "the-collector-db",
  "the-collector-ipc",
  "tokio",
@@ -2606,7 +2604,6 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "dotenv",
- "lazy_static",
  "riven",
  "the-collector-db",
  "the-collector-ipc",

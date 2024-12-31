@@ -1,6 +1,6 @@
-use std::{marker::PhantomData, sync::Arc};
 use nng::{Error, Socket};
 use serde::Serialize;
+use std::{marker::PhantomData, sync::Arc};
 
 #[derive(Debug)]
 pub struct IpcPublisher<T: Serialize> {
@@ -22,9 +22,7 @@ impl<T: Serialize + Send + Sync> IpcPublisher<T> {
     pub async fn publish(&self, data: T) -> anyhow::Result<()> {
         let bytes = bincode::serialize(&data)?;
         let socket = self.socket.clone();
-        tokio::task::spawn_blocking(move || {
-            socket.send(&bytes).map_err(|err| err.1)
-        }).await??;
+        tokio::task::spawn_blocking(move || socket.send(&bytes).map_err(|err| err.1)).await??;
         Ok(())
     }
 }

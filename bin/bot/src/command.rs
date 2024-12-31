@@ -1,7 +1,7 @@
-use the_collector_db::DbHandler;
 use anyhow::Context;
 use riven::RiotApi;
 use std::sync::Arc;
+use the_collector_db::DbHandler;
 
 const LEADERBOARD_SIZE: usize = 10;
 

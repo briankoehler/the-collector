@@ -1,5 +1,5 @@
-use riven::models::match_v5::Participant;
 use std::collections::HashMap;
+use the_collector_db::model::SummonerMatch;
 
 // TODO: Move to a configuration file
 // TODO: Research values to use here
@@ -39,7 +39,7 @@ struct Threshold {
 
 impl Threshold {
     // TODO: Improve this logic
-    fn is_int(&self, stats: &Participant) -> bool {
+    fn is_int(&self, stats: &SummonerMatch) -> bool {
         if stats.deaths >= self.deaths.into() {
             return true;
         }
@@ -63,7 +63,7 @@ impl MatchStatsEvaluator {
         }
     }
 
-    pub fn is_int(&self, match_stats: &Participant) -> bool {
+    pub fn is_int(&self, match_stats: &SummonerMatch) -> bool {
         // TODO: Get threshold to use from position
         self.thresholds[&Role::Top].is_int(match_stats)
     }
