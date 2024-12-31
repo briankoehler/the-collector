@@ -1,3 +1,4 @@
+use anyhow::Context as _;
 use async_trait::async_trait;
 use command::Data;
 use evaluator::MatchStatsEvaluator;
@@ -81,25 +82,25 @@ impl EventHandler for Handler {
 }
 
 #[tokio::main]
-async fn main() {
-    dotenv::dotenv().expect("Get values from env file");
+async fn main() -> anyhow::Result<()> {
+    dotenv::dotenv()?;
     setup_tracing_subscriber();
 
     info!("Setting up DB client");
-    let db_uri = std::env::var("DATABASE_URL").expect("Failed to get DATABASE_URL");
+    let db_uri = std::env::var("DATABASE_URL")?;
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(&db_uri)
         .await
-        .expect("Should connect to database");
+        .context("Failed to connect to database")?;
     let db_handler = Arc::new(DbHandler::new(pool));
 
-    let token = std::env::var("DISCORD_TOKEN").expect("Failed to get DISCORD_TOKEN");
+    let token = std::env::var("DISCORD_TOKEN")?;
     let intents = GatewayIntents::all();
 
     // Setup Riot API
     info!("Setting up Riot API client");
-    let api_key = std::env::var("RGAPI_KEY").expect("Failed to get RGAPI_KEY");
+    let api_key = std::env::var("RGAPI_KEY")?;
     let riot_api = RiotApi::new(api_key);
 
     let db_handler_clone = db_handler.clone();
@@ -128,7 +129,7 @@ async fn main() {
         .build();
 
     // TODO: Consolidate the event handler to the poise framework builder
-    let subscriber = Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH).unwrap());
+    let subscriber = Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?);
     let evaluator = Arc::new(MatchStatsEvaluator::new());
     let mut client = Client::builder(token, intents)
         .framework(framework)
@@ -138,10 +139,12 @@ async fn main() {
             evaluator,
         })
         .await
-        .expect("Client should be created");
+        .context("Failed to create client")?;
 
     info!("Starting client");
-    client.start().await.expect("Client runs forever")
+    client.start().await.context("Client exited its loop")?;
+
+    Ok(())
 }
 
 fn setup_tracing_subscriber() {
