@@ -163,6 +163,7 @@ pub async fn list(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let guild_id = ctx.guild_id().expect("Called in guild context only");
 
+    // Get raw data from DB
     let followed_data = ctx
         .data()
         .db_handler
@@ -174,15 +175,26 @@ pub async fn list(
         return Ok(());
     }
 
-    let lines = followed_data.iter().map(|guild_following| {
-        format!(
-            "{}",
-            guild_following.puuid // TODO: Convert to "game_name#tag" format
-        )
+    // Format the message
+    // TODO: Examine better ways to handle this
+    let mut message = String::from("**FOLLOWED SUMMONERS**\n**-------------------------**\n");
+    let lines = tokio_stream::iter(followed_data).then(|guild_following| async move {
+        let summoner = ctx
+            .data()
+            .db_handler
+            .get_summoner(&guild_following.puuid)
+            .await
+            .unwrap()
+            .unwrap();
+        let summoner_name = format!("{}#{}", summoner.game_name, summoner.tag);
+        summoner_name
     });
-    let mut message = String::from("**Followed Summoners**\n**-------------------------**\n");
-    for (index, line) in lines.enumerate() {
+    tokio::pin!(lines);
+
+    let mut index = 1;
+    while let Some(line) = lines.next().await {
         message += &format!("**{})** {}\n", index, line);
+        index += 1;
     }
 
     // Send the message
