@@ -1,7 +1,9 @@
+use crate::ddragon::{DataDragon, GameVersion};
 use anyhow::Context;
 use riven::RiotApi;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
+use tokio::sync::Mutex;
 use tokio_stream::StreamExt;
 
 const LEADERBOARD_SIZE: usize = 10;
@@ -9,6 +11,7 @@ const LEADERBOARD_SIZE: usize = 10;
 pub struct Data {
     pub db_handler: Arc<DbHandler>,
     pub riot_api: RiotApi,
+    pub data_dragon: Mutex<DataDragon>,
 }
 
 // TODO: Support optionally specified leaderboard size
@@ -37,14 +40,35 @@ pub async fn leaderboard(
             .await
             .unwrap()
             .unwrap();
+        let matches = ctx
+            .data()
+            .db_handler
+            .get_matches(&[summoner_match.match_id])
+            .await
+            .unwrap();
+        let match_info = matches.first().unwrap();
+
+        let version = GameVersion(match_info.game_version.clone())
+            .to_data_dragon_version()
+            .await
+            .unwrap();
         let summoner_name = format!("{}#{}", summoner.game_name, summoner.tag);
+        let champion_name = ctx
+            .data()
+            .data_dragon
+            .lock()
+            .await
+            .get_champion_name(&version, summoner_match.champion_id as u16)
+            .await
+            .unwrap()
+            .unwrap();
         format!(
             "{}/{}/{} - {} ({})",
             summoner_match.kills,
             summoner_match.deaths,
             summoner_match.assists,
             summoner_name,
-            summoner_match.champion_id // TODO (MUST-DO): Convert to champion name
+            champion_name,
         )
     });
     tokio::pin!(lines);

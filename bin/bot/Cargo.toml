@@ -19,4 +19,6 @@ tokio = { version = "1.37.0", features = ["full"] }
 tracing = { version = "0.1.41" }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 rand = "0.8.5"
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0.217", features = ["derive"] }
 tokio-stream = "0.1.17"

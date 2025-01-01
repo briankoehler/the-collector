@@ -1,6 +1,7 @@
 use anyhow::Context as _;
 use async_trait::async_trait;
 use command::Data;
+use ddragon::DataDragon;
 use evaluator::MatchStatsEvaluator;
 use message::MessageBuilder;
 use poise::{
@@ -14,10 +15,12 @@ use riven::RiotApi;
 use std::sync::Arc;
 use the_collector_db::{DbHandler, SqlitePoolOptions};
 use the_collector_ipc::{sub::IpcSubscriber, SummonerMatchQuery, IPC_SUMMONER_MATCH_PATH};
+use tokio::sync::Mutex;
 use tracing::{debug, error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
+mod ddragon;
 mod evaluator;
 mod message;
 
@@ -169,6 +172,7 @@ async fn main() -> anyhow::Result<()> {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
                     db_handler: db_handler_clone,
+                    data_dragon: Mutex::new(DataDragon::new()),
                     riot_api,
                 })
             })
