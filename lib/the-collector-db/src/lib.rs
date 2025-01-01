@@ -203,7 +203,16 @@ impl DbHandler {
         &self,
         guild_id: u64,
     ) -> Result<[model::SummonerMatch; SIZE], Error> {
-        todo!()
+        // TODO: Only get ints?
+        let guild_id = guild_id as i64;
+        sqlx::query_as!(model::SummonerMatch,
+            "SELECT summoner_match.* FROM summoner_match
+            INNER JOIN guild_following ON guild_following.puuid = summoner_match.puuid
+            WHERE guild_following.guild_id = ?
+            ORDER BY deaths DESC LIMIT ?", guild_id, SIZE as i64)
+            .fetch_all(&self.pool)
+            .await
+            .map(|data| data.try_into().unwrap())
     }
 
     pub async fn insert_guild_following(
