@@ -1,7 +1,7 @@
 use riven::models::account_v1::Account;
 use riven::models::match_v5::Match;
 use sqlx::sqlite::SqliteQueryResult;
-use sqlx::types::chrono::{self, DateTime};
+use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::{Error, Pool, Sqlite};
 
 // Re-export so that clients can avoid having sqlx as a dependency
@@ -226,7 +226,10 @@ impl DbHandler {
         puuid: &str,
         match_id: &str,
     ) -> Result<Option<model::SummonerMatch>, Error> {
-        todo!()
+        sqlx::query_as!(model::SummonerMatch, 
+            "SELECT * FROM summoner_match WHERE puuid = ? AND match_id = ?", puuid, match_id)
+            .fetch_optional(&self.pool)
+            .await
     }
 }
 
