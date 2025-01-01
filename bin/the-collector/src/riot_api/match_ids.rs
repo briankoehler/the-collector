@@ -79,7 +79,9 @@ impl Publish for MatchIdsRequester {
             let mut lock = self.matches_queue.lock().await;
             if let Some(matches_query) = lock.pop_front() {
                 drop(lock);
-                let match_ids = self.get_matches(&matches_query).await;
+                let mut match_ids = self.get_matches(&matches_query).await;
+                // Reverse the match IDs to iterate in the correct order
+                match_ids.reverse();
                 debug!("Got match IDs: {match_ids:?}");
                 publishing_channel.send(match_ids).unwrap();
             }
