@@ -15,3 +15,4 @@ riven = { version = "2.50.0" }
 tokio = { version = "1.37.0", features = ["full"] }
 tracing = { version = "0.1.41" }
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+circular-queue = "0.2.6"

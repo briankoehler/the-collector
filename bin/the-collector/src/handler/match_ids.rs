@@ -1,15 +1,20 @@
 use crate::riot_api::match_data::MatchDataRequester;
 use crate::riot_api::Publish;
 use std::sync::Arc;
+use circular_queue::CircularQueue;
 use the_collector_db::DbHandler;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::{debug, error};
+
+const CACHE_SIZE: usize = 100;
 
 #[derive(Debug)]
 pub struct MatchIdsHandler<P: Publish> {
     db_conn: Arc<DbHandler>,
     rx_channel: UnboundedReceiver<Vec<String>>,
     output: Arc<P>,
+    // TODO: Consider removing the cache
+    cache: CircularQueue<String>
 }
 
 impl<P: Publish> MatchIdsHandler<P> {
@@ -18,10 +23,12 @@ impl<P: Publish> MatchIdsHandler<P> {
         rx_channel: UnboundedReceiver<Vec<String>>,
         output: Arc<P>,
     ) -> Self {
+        let cache = CircularQueue::with_capacity(CACHE_SIZE);
         Self {
             db_conn,
             rx_channel,
             output,
+            cache,
         }
     }
 }
@@ -50,7 +57,14 @@ impl MatchIdsHandler<MatchDataRequester> {
             );
             let db_matches: Vec<String> = matches.into_iter().map(|m| m.id).collect();
 
+            // Remove games that are already in the cache, or are in the database
+            data.retain(|match_id| !self.cache.iter().any(|cache_id| cache_id == match_id));
             data.retain(|match_id| !db_matches.contains(match_id));
+
+            // Add match IDs to cache and push out
+            for match_id in &data {
+                self.cache.push(match_id.clone());
+            }
             self.output.push(data).await;
         }
     }
