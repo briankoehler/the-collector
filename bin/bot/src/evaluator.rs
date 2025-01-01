@@ -43,7 +43,7 @@ impl Threshold {
         if stats.deaths >= self.deaths.into() {
             return true;
         }
-        let kda = (stats.kills as f32 + stats.deaths as f32) / stats.assists as f32;
+        let kda = (stats.kills as f32 + stats.assists as f32) / stats.deaths as f32;
         if kda <= self.kda {
             return true;
         }
