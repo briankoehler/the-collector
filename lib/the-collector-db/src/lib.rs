@@ -101,7 +101,7 @@ impl DbHandler {
 
     /// Insert account data
     pub async fn insert_summoner(&self, account: Account) -> Result<SqliteQueryResult, Error> {
-        let now_ms = chrono::Utc::now().timestamp_millis();
+        let now = Utc::now().naive_utc();
         let game_name = account.game_name.as_ref().unwrap();
         let tag = &account.tag_line.as_ref().unwrap();
         sqlx::query!(
@@ -109,7 +109,7 @@ impl DbHandler {
             account.puuid,
             game_name,
             tag,
-            now_ms
+            now
         )
         .execute(&self.pool)
         .await
