@@ -121,11 +121,12 @@ pub async fn unfollow(
 #[poise::command(slash_command, guild_only)]
 pub async fn stats(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
-    #[description = "Summoner Name"] name: String,
-    #[description = "Summoner Tag"] tag: String,
+    #[description = "Summoner Name"] _name: String,
+    #[description = "Summoner Tag"] _tag: String,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let _guild_id = ctx.guild_id().unwrap();
-    todo!();
+    // TODO
+    ctx.say("Coming soon").await?;
+    Ok(())
 }
 
 /// Set the channel that notifications are sent to
