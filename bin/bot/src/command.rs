@@ -153,7 +153,10 @@ pub async fn here(
 pub async fn unhere(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    todo!("Unset the notification channel")
+    // TODO: Validate that this channel was being used
+    let channel_id = ctx.channel_id();
+    ctx.data().db_handler.delete_channel_id(channel_id.into()).await?;
+    Ok(())
 }
 
 /// Display a list of the summoners that the guild of the current context is
