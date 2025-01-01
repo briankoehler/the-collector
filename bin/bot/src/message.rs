@@ -21,14 +21,13 @@ impl MessageBuilder {
     }
 
     // TODO: Add more here
-    pub fn build_message(&self, summoner_match: &model::SummonerMatch) -> String {
+    pub fn build_message(&self, summoner_match: &model::SummonerMatch, summoner: &model::Summoner) -> String {
         let message = self
             .templates
             .choose(&mut rand::thread_rng())
             .expect("Templates is unexpectedly empty");
-        // TODO: Replace PUUID with game_name#tag
-        let message = message.replace("%s", &summoner_match.puuid);
-        let message = message.replace("%S", &summoner_match.puuid.to_uppercase());
+        let message = message.replace("%s", &summoner.game_name);
+        let message = message.replace("%S", &summoner.game_name.to_uppercase());
         message.replace("%d", &summoner_match.deaths.to_string())
     }
 }
