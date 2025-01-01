@@ -10,7 +10,7 @@ pub struct IpcSubscriber<T: DeserializeOwned> {
 
 impl<T: DeserializeOwned + Send + Sync> IpcSubscriber<T> {
     pub fn new(url: &str) -> Result<Self, Error> {
-        let socket = Arc::new(Socket::new(nng::Protocol::Sub0)?);
+        let socket = Arc::new(Socket::new(nng::Protocol::Pull0)?);
         socket.listen(url)?;
         Ok(Self {
             socket,

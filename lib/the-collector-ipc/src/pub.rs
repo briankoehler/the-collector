@@ -10,7 +10,7 @@ pub struct IpcPublisher<T: Serialize> {
 
 impl<T: Serialize + Send + Sync> IpcPublisher<T> {
     pub fn new(url: &str) -> Result<Self, Error> {
-        let socket = Arc::new(Socket::new(nng::Protocol::Pub0)?);
+        let socket = Arc::new(Socket::new(nng::Protocol::Push0)?);
         socket.dial(url)?;
         Ok(Self {
             socket,
