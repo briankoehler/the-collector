@@ -3,7 +3,7 @@ use std::sync::Arc;
 use the_collector_db::DbHandler;
 use the_collector_ipc::{r#pub::IpcPublisher, SummonerMatchQuery};
 use tokio::sync::mpsc::UnboundedReceiver;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 #[derive(Debug)]
 pub struct MatchDataHandler {
@@ -50,7 +50,6 @@ impl MatchDataHandler {
                 if self.db_conn.get_summoner(puuid).await.unwrap().is_some() {
                     if let Err(e) = self.db_conn.insert_summoner_match(puuid, &data).await {
                         error!("Failed to insert summoner match data into database: {e:?}");
-                    }
                 }
 
                 // TODO: Avoid cloning?
@@ -58,7 +57,10 @@ impl MatchDataHandler {
                     puuid: puuid.clone(),
                     match_id: data.metadata.match_id.clone(),
                 };
+                    info!("Sending match query: {message:?}");
                 self.publisher.publish(message).await.unwrap();
+                }
+
             }
         }
     }
