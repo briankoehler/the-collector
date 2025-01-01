@@ -26,6 +26,7 @@ impl MessageBuilder {
             .templates
             .choose(&mut rand::thread_rng())
             .expect("Templates is unexpectedly empty");
+        // TODO: Replace PUUID with game_name#tag
         let message = message.replace("%s", &summoner_match.puuid);
         let message = message.replace("%S", &summoner_match.puuid.to_uppercase());
         message.replace("%d", &summoner_match.deaths.to_string())
