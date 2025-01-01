@@ -50,17 +50,16 @@ impl MatchDataHandler {
                 if self.db_conn.get_summoner(puuid).await.unwrap().is_some() {
                     if let Err(e) = self.db_conn.insert_summoner_match(puuid, &data).await {
                         error!("Failed to insert summoner match data into database: {e:?}");
-                }
+                    }
 
-                // TODO: Avoid cloning?
-                let message = SummonerMatchQuery {
-                    puuid: puuid.clone(),
-                    match_id: data.metadata.match_id.clone(),
-                };
+                    // TODO: Avoid cloning?
+                    let message = SummonerMatchQuery {
+                        puuid: puuid.clone(),
+                        match_id: data.metadata.match_id.clone(),
+                    };
                     info!("Sending match query: {message:?}");
-                self.publisher.publish(message).await.unwrap();
+                    self.publisher.publish(message).await.unwrap();
                 }
-
             }
         }
     }

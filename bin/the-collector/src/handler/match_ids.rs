@@ -1,7 +1,7 @@
 use crate::riot_api::match_data::MatchDataRequester;
 use crate::riot_api::Publish;
-use std::sync::Arc;
 use circular_queue::CircularQueue;
+use std::sync::Arc;
 use the_collector_db::DbHandler;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::{debug, error};
@@ -14,7 +14,7 @@ pub struct MatchIdsHandler<P: Publish> {
     rx_channel: UnboundedReceiver<Vec<String>>,
     output: Arc<P>,
     // TODO: Consider removing the cache
-    cache: CircularQueue<String>
+    cache: CircularQueue<String>,
 }
 
 impl<P: Publish> MatchIdsHandler<P> {

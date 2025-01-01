@@ -155,7 +155,10 @@ pub async fn unhere(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // TODO: Validate that this channel was being used
     let channel_id = ctx.channel_id();
-    ctx.data().db_handler.delete_channel_id(channel_id.into()).await?;
+    ctx.data()
+        .db_handler
+        .delete_channel_id(channel_id.into())
+        .await?;
     Ok(())
 }
 

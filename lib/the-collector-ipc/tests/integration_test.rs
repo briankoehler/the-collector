@@ -1,9 +1,13 @@
-use the_collector_ipc::{r#pub::IpcPublisher, sub::IpcSubscriber, SummonerMatchQuery, IPC_SUMMONER_MATCH_PATH};
-
+use the_collector_ipc::{
+    r#pub::IpcPublisher, sub::IpcSubscriber, SummonerMatchQuery, IPC_SUMMONER_MATCH_PATH,
+};
 
 #[tokio::test]
 async fn test_pub_sub() {
-    let original_message = SummonerMatchQuery { puuid: "puuid".into(), match_id: "match_id".into() };
+    let original_message = SummonerMatchQuery {
+        puuid: "puuid".into(),
+        match_id: "match_id".into(),
+    };
     let sent_message = original_message.clone();
     let subscriber_task = tokio::task::spawn(async move {
         let subscriber = IpcSubscriber::<SummonerMatchQuery>::new(IPC_SUMMONER_MATCH_PATH).unwrap();

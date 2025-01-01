@@ -58,7 +58,11 @@ impl EventHandler for Handler {
                         summoner_match.puuid, summoner_match.match_id
                     );
 
-                    let summoner = db_handler.get_summoner(&summoner_match.puuid).await.unwrap().unwrap();
+                    let summoner = db_handler
+                        .get_summoner(&summoner_match.puuid)
+                        .await
+                        .unwrap()
+                        .unwrap();
                     let message = message_builder.build_message(&summoner_match, &summoner);
 
                     let followers = db_handler

@@ -21,7 +21,11 @@ impl MessageBuilder {
     }
 
     // TODO: Add more here
-    pub fn build_message(&self, summoner_match: &model::SummonerMatch, summoner: &model::Summoner) -> String {
+    pub fn build_message(
+        &self,
+        summoner_match: &model::SummonerMatch,
+        summoner: &model::Summoner,
+    ) -> String {
         let message = self
             .templates
             .choose(&mut rand::thread_rng())
