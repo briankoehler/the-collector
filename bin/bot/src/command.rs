@@ -212,5 +212,7 @@ pub async fn about(
     ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _guild_id = ctx.guild_id().unwrap();
-    todo!();
+    let message = format!("v{}", env!("CARGO_PKG_VERSION"));
+    ctx.reply(message).await?;
+    Ok(())
 }
