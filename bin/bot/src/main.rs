@@ -119,7 +119,7 @@ impl EventHandler for Handler {
     ) {
         let result = self
             .db_handler
-            .delete_channel_id(channel.id.into())
+            .delete_channel(channel.id.into())
             .await
             .unwrap();
         if result.rows_affected() >= 1 {

@@ -137,8 +137,22 @@ pub async fn unfollow(
     #[description = "Summoner Name"] name: String,
     #[description = "Summoner Tag"] tag: String,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let _guild_id = ctx.guild_id().unwrap();
-    todo!();
+    let guild_id = ctx.guild_id().unwrap();
+    let summoner = ctx
+        .data()
+        .db_handler
+        .get_summoner_by_name(&name, &tag)
+        .await?
+        .unwrap();
+    ctx.data()
+        .db_handler
+        .delete_guild_following(guild_id.into(), &summoner.puuid)
+        .await
+        .unwrap();
+
+    let message = format!("Stopped following {}#{}.", summoner.game_name, summoner.tag);
+    ctx.say(message).await?;
+    Ok(())
 }
 
 /// Display statistics of the provided summoner
@@ -181,7 +195,7 @@ pub async fn unhere(
     let channel_id = ctx.channel_id();
     ctx.data()
         .db_handler
-        .delete_channel_id(channel_id.into())
+        .delete_channel(channel_id.into())
         .await?;
     Ok(())
 }

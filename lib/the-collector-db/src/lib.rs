@@ -179,8 +179,14 @@ impl DbHandler {
             .await
     }
 
-    pub async fn delete_channel_id(&self, channel_id: u64) -> Result<SqliteQueryResult, Error> {
-        todo!()
+    pub async fn delete_channel(&self, channel_id: u64) -> Result<SqliteQueryResult, Error> {
+        let channel_id = channel_id as i64;
+        sqlx::query!(
+            "UPDATE guild SET channel_id = NULL WHERE channel_id = ?",
+            channel_id
+        )
+        .execute(&self.pool)
+        .await
     }
 
     pub async fn update_channel(
@@ -244,6 +250,36 @@ impl DbHandler {
             "SELECT * FROM summoner_match WHERE puuid = ? AND match_id = ?",
             puuid,
             match_id
+        )
+        .fetch_optional(&self.pool)
+        .await
+    }
+
+    pub async fn delete_guild_following(
+        &self,
+        guild_id: u64,
+        puuid: &str,
+    ) -> Result<SqliteQueryResult, Error> {
+        let guild_id = guild_id as i64;
+        sqlx::query!(
+            "DELETE FROM guild_following WHERE guild_id = ? AND puuid = ?",
+            guild_id,
+            puuid
+        )
+        .execute(&self.pool)
+        .await
+    }
+
+    pub async fn get_summoner_by_name(
+        &self,
+        name: &str,
+        tag: &str,
+    ) -> Result<Option<model::Summoner>, Error> {
+        sqlx::query_as!(
+            model::Summoner,
+            "SELECT * FROM summoner WHERE game_name = ? AND tag = ?",
+            name,
+            tag
         )
         .fetch_optional(&self.pool)
         .await
