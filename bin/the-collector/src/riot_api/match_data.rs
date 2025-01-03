@@ -38,7 +38,10 @@ impl MatchDataRequester {
             .await
     }
 
-    async fn run(&self, publishing_channel: &UnboundedSender<Match>) -> anyhow::Result<()> {
+    async fn run(
+        &self,
+        publishing_channel: &UnboundedSender<<Self as Publish>::Output>,
+    ) -> anyhow::Result<()> {
         let mut lock = self.match_queue.lock().await;
         if let Some(match_id) = lock.pop_front() {
             drop(lock);
@@ -46,7 +49,10 @@ impl MatchDataRequester {
                 .get_match(&match_id)
                 .await?
                 .context("No match with ID {match_id:?} found")?;
-            debug!("Fetched match data for match: {:?}", match_data.metadata.match_id);
+            debug!(
+                "Fetched match data for match: {:?}",
+                match_data.metadata.match_id
+            );
             publishing_channel.send(match_data)?;
         }
         Ok(())

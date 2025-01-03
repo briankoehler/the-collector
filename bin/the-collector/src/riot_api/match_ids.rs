@@ -1,11 +1,11 @@
 use super::Publish;
 use riven::consts::RegionalRoute::AMERICAS;
-use riven::RiotApi;
+use riven::{RiotApi, RiotApiError};
 use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::Mutex;
-use tracing::debug;
+use tracing::{debug, error};
 
 // Max value that Riot API accepts for getting match IDs
 const MAX_MATCHES: i32 = 100;
@@ -42,7 +42,7 @@ impl MatchIdsRequester {
     }
 
     /// Get matches from Riot API given a [`GetMatchesQuery`].
-    async fn get_matches(&self, query: &GetMatchIdsQuery) -> Vec<String> {
+    async fn get_matches(&self, query: &GetMatchIdsQuery) -> Result<Vec<String>, RiotApiError> {
         self.riot_api
             .match_v5()
             .get_match_ids_by_puuid(
@@ -56,7 +56,22 @@ impl MatchIdsRequester {
                 None,
             )
             .await
-            .unwrap()
+    }
+
+    async fn run(
+        &self,
+        publishing_channel: &UnboundedSender<<Self as Publish>::Output>,
+    ) -> anyhow::Result<()> {
+        let mut lock = self.matches_queue.lock().await;
+        if let Some(matches_query) = lock.pop_front() {
+            drop(lock);
+            let mut match_ids = self.get_matches(&matches_query).await?;
+            // Reverse the match IDs to iterate in chronological order
+            match_ids.reverse();
+            debug!("Got match IDs: {match_ids:?}");
+            publishing_channel.send(match_ids)?;
+        }
+        Ok(())
     }
 }
 
@@ -76,14 +91,8 @@ impl Publish for MatchIdsRequester {
     #[tracing::instrument]
     async fn start(&self, publishing_channel: UnboundedSender<Self::Output>) {
         loop {
-            let mut lock = self.matches_queue.lock().await;
-            if let Some(matches_query) = lock.pop_front() {
-                drop(lock);
-                let mut match_ids = self.get_matches(&matches_query).await;
-                // Reverse the match IDs to iterate in the correct order
-                match_ids.reverse();
-                debug!("Got match IDs: {match_ids:?}");
-                publishing_channel.send(match_ids).unwrap();
+            if let Err(e) = self.run(&publishing_channel).await {
+                error!("Error retrieving match data: {e:?}");
             }
         }
     }
