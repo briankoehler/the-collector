@@ -1,3 +1,4 @@
+use crate::error::IpcError;
 use nng::{Error, Socket};
 use serde::Serialize;
 use std::{marker::PhantomData, sync::Arc};
@@ -19,7 +20,7 @@ impl<T: Serialize + Send + Sync> IpcPublisher<T> {
     }
 
     // TODO: Return specific error types
-    pub async fn publish(&self, data: T) -> anyhow::Result<()> {
+    pub async fn publish(&self, data: T) -> Result<(), IpcError> {
         let bytes = bincode::serialize(&data)?;
         let socket = self.socket.clone();
         tokio::task::spawn_blocking(move || socket.send(&bytes).map_err(|err| err.1)).await??;
