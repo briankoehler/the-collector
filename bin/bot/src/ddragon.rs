@@ -1,3 +1,4 @@
+use anyhow::Context;
 use serde::Deserialize;
 use std::{collections::HashMap, fmt::Display};
 
@@ -92,7 +93,9 @@ impl DataDragon {
                 champions: champions_map,
             },
         );
-        Ok(self.cache.get(&version).unwrap())
+        self.cache
+            .get(&version)
+            .context("Failed to get Data Dragon blob from cache after insertion")
     }
 }
 
