@@ -1,8 +1,9 @@
 use super::Publish;
-use riven::{models::match_v5::Match, RiotApi};
+use anyhow::Context;
+use riven::{models::match_v5::Match, RiotApi, RiotApiError};
 use std::{collections::VecDeque, sync::Arc};
 use tokio::sync::{mpsc::UnboundedSender, Mutex};
-use tracing::debug;
+use tracing::{debug, error};
 
 /// Requester for fetching [`Match`] data from the Riot API given match IDs.
 ///
@@ -30,12 +31,25 @@ impl MatchDataRequester {
     }
 
     /// Fetch [`Match`] data from Riot API given a match ID.
-    async fn get_match(&self, match_id: &str) -> Option<Match> {
+    async fn get_match(&self, match_id: &str) -> Result<Option<Match>, RiotApiError> {
         self.riot_api
             .match_v5()
             .get_match(riven::consts::RegionalRoute::AMERICAS, match_id)
             .await
-            .unwrap()
+    }
+
+    async fn run(&self, publishing_channel: &UnboundedSender<Match>) -> anyhow::Result<()> {
+        let mut lock = self.match_queue.lock().await;
+        if let Some(match_id) = lock.pop_front() {
+            drop(lock);
+            let match_data = self
+                .get_match(&match_id)
+                .await?
+                .context("No match with ID {match_id:?} found")?;
+            debug!("Fetched match data for match: {:?}", match_data.metadata.match_id);
+            publishing_channel.send(match_data)?;
+        }
+        Ok(())
     }
 }
 
@@ -54,12 +68,8 @@ impl Publish for MatchDataRequester {
     #[tracing::instrument]
     async fn start(&self, publishing_channel: UnboundedSender<Self::Output>) {
         loop {
-            let mut lock = self.match_queue.lock().await;
-            if let Some(match_id) = lock.pop_front() {
-                drop(lock);
-                let match_data = self.get_match(&match_id).await.unwrap();
-                debug!("Fetched match data: {:?}", match_data.metadata.match_id);
-                publishing_channel.send(match_data).unwrap();
+            if let Err(e) = self.run(&publishing_channel).await {
+                error!("Error retrieving match data: {e:?}");
             }
         }
     }
