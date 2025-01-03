@@ -2,7 +2,8 @@ use anyhow::Context as _;
 use command::Data;
 use ddragon::DataDragon;
 use evaluator::MatchStatsEvaluator;
-use handler::Handler;
+use handler::bot::BotHandler;
+use handler::message::MessageHandler;
 use message::MessageBuilder;
 use poise::serenity_prelude::{Client, GatewayIntents};
 use poise::{Framework, FrameworkOptions};
@@ -71,14 +72,21 @@ async fn main() -> anyhow::Result<()> {
     // TODO: Consolidate the event handler to the poise framework builder
     let mut client = Client::builder(token, intents)
         .framework(framework)
-        .event_handler(Handler {
-            db_handler,
-            subscriber: Arc::new(IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?),
-            evaluator: Arc::new(MatchStatsEvaluator::new()),
-            message_builder: Arc::new(MessageBuilder::new()),
+        .event_handler(BotHandler {
+            db_handler: db_handler.clone(),
         })
         .await
         .context("Failed to create client")?;
+
+    let summoner_match_handler = MessageHandler {
+        db_handler: db_handler.clone(),
+        subscriber: IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?,
+        evaluator: MatchStatsEvaluator::new(),
+        message_builder: MessageBuilder::new(),
+        http: client.http.clone(),
+    };
+    info!("Starting Summoner Match Handler");
+    tokio::task::spawn(async move { summoner_match_handler.start().await });
 
     info!("Starting client");
     client.start().await.context("Client exited its loop")?;

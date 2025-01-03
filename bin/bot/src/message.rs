@@ -15,6 +15,7 @@ const TEMPLATES: [&str; 10] = [
     "Holy moly - **%d DEATHS** BY %S!!",
 ];
 
+#[derive(Debug)]
 pub struct MessageBuilder {
     templates: Vec<String>,
 }
