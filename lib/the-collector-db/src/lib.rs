@@ -67,13 +67,9 @@ impl DbHandler {
 
     /// Get all matches from the database.
     pub async fn get_match(&self, match_id: &str) -> Result<Option<model::Match>, Error> {
-        sqlx::query_as!(
-            model::Match,
-            "SELECT * FROM match WHERE id = ?",
-            match_id
-        )
-        .fetch_optional(&self.pool)
-        .await
+        sqlx::query_as!(model::Match, "SELECT * FROM match WHERE id = ?", match_id)
+            .fetch_optional(&self.pool)
+            .await
     }
 
     /// Get guild followings that match the provided guild ID.
@@ -206,10 +202,10 @@ impl DbHandler {
     pub async fn update_channel(
         &self,
         guild_id: u64,
-        channel_id: u64,
+        channel_id: Option<u64>,
     ) -> Result<SqliteQueryResult, Error> {
         let guild_id = guild_id as i64;
-        let channel_id = channel_id as i64;
+        let channel_id = channel_id.map(|id| id as i64);
         sqlx::query!(
             "UPDATE guild SET channel_id = ? WHERE id = ?",
             channel_id,

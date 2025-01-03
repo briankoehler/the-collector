@@ -12,7 +12,7 @@ const TEMPLATES: [&str; 10] = [
     "What a game by %s! **%k kills and %d deaths!**",
     "**BREAKING NEWS:** %S INTS ANOTHER GAME WITH **%d DEATHS**.",
     "**NEWS FLASH:** %S DROPS A **%d DEATH** GAME.",
-    "Holy moly - **%d DEATHS** BY %S!!"
+    "Holy moly - **%d DEATHS** BY %S!!",
 ];
 
 pub struct MessageBuilder {
@@ -36,7 +36,8 @@ impl MessageBuilder {
             .templates
             .choose(&mut rand::thread_rng())
             .expect("Templates is unexpectedly empty");
-        message.replace("%s", &summoner.game_name)
+        message
+            .replace("%s", &summoner.game_name)
             .replace("%S", &summoner.game_name.to_uppercase())
             .replace("%d", &summoner_match.deaths.to_string())
             .replace("%d", &summoner_match.deaths.to_string())

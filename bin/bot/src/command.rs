@@ -19,10 +19,8 @@ pub struct Data {
 // TODO: Support optionally specified leaderboard size
 /// Displays a leaderboard of the top ints
 #[poise::command(slash_command, guild_only)]
-pub async fn leaderboard(
-    ctx: poise::Context<'_, Data, CommandError>,
-) -> Result<(), CommandError> {
-    let guild_id = ctx.guild_id().context("Called in guild context only")?;
+pub async fn leaderboard(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
+    let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
 
     // Get leaderboard data from the database
     let leaderboard_data = ctx
@@ -90,16 +88,20 @@ pub async fn follow(
     #[description = "Summoner Name"] name: String,
     #[description = "Summoner Tag"] tag: String,
 ) -> Result<(), CommandError> {
-    let guild_id = ctx.guild_id().expect("Called in guild context only");
+    let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
 
     // TODO: Check for puuid in database first
-    let account = ctx
+    let Some(account) = ctx
         .data()
         .riot_api
         .account_v1()
         .get_by_riot_id(riven::consts::RegionalRoute::AMERICAS, &name, &tag)
         .await?
-        .context("No summoner found with this name.")?;
+    else {
+        let message = format!("No summoner exists with name {name}#{tag}.");
+        ctx.reply(message).await?;
+        return Ok(());
+    };
 
     // TODO: Refactor this to be more efficient and robust
     let following = ctx
@@ -111,7 +113,8 @@ pub async fn follow(
         .iter()
         .any(|following| following.puuid == account.puuid)
     {
-        ctx.reply("Already following that summoner.").await?;
+        let message = format!("Already following {name}#{tag}.");
+        ctx.reply(message).await?;
         return Ok(());
     }
 
@@ -124,30 +127,35 @@ pub async fn follow(
         .insert_guild_following(guild_id.into(), &account.puuid)
         .await?;
 
+    // TODO: Use name from API to have correct casing
     let message = format!("Followed {name}#{tag}");
     ctx.reply(message).await?;
     Ok(())
 }
 
-/// Unsubscribes the guild of the current context to the provided summoner
+/// Unsubscribe the guild from the provided summoner
 #[poise::command(slash_command, guild_only)]
 pub async fn unfollow(
     ctx: poise::Context<'_, Data, CommandError>,
     #[description = "Summoner Name"] name: String,
     #[description = "Summoner Tag"] tag: String,
 ) -> Result<(), CommandError> {
-    let guild_id = ctx.guild_id().unwrap();
-    let summoner = ctx
+    let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
+
+    let Some(summoner) = ctx
         .data()
         .db_handler
         .get_summoner_by_name(&name, &tag)
         .await?
-        .unwrap();
+    else {
+        let message = format!("No summoner being followed with name {name}#{tag}");
+        ctx.reply(message).await?;
+        return Ok(());
+    };
     ctx.data()
         .db_handler
         .delete_guild_following(guild_id.into(), &summoner.puuid)
-        .await
-        .unwrap();
+        .await?;
 
     let message = format!("Stopped following {}#{}.", summoner.game_name, summoner.tag);
     ctx.say(message).await?;
@@ -168,44 +176,45 @@ pub async fn stats(
 
 /// Set the channel that notifications are sent to
 #[poise::command(slash_command, guild_only)]
-pub async fn here(
-    ctx: poise::Context<'_, Data, CommandError>,
-) -> Result<(), CommandError> {
-    let guild_id = ctx.guild_id().expect("Called in guild context only");
+pub async fn here(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
+    let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
+
     let channel_id = ctx.channel_id();
     ctx.data()
         .db_handler
-        .update_channel(guild_id.into(), channel_id.into())
+        .update_channel(guild_id.into(), Some(channel_id.into()))
         .await?;
+
     let message = format!(
-        "Setting notification channel to **{}**.",
-        ctx.guild_channel().await.unwrap().name
+        "Setting notification channel to **#{}**.",
+        ctx.guild_channel()
+            .await
+            .context("Trying to get guild channel")?
+            .name
     );
     ctx.reply(message).await?;
     Ok(())
 }
 
-/// Set the channel that notifications are sent to
+/// Unset the channel that notifications are sent to
 #[poise::command(slash_command, guild_only)]
-pub async fn unhere(
-    ctx: poise::Context<'_, Data, CommandError>,
-) -> Result<(), CommandError> {
-    // TODO: Validate that this channel was being used
-    let channel_id = ctx.channel_id();
+pub async fn unhere(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
+    let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
+
     ctx.data()
         .db_handler
-        .delete_channel(channel_id.into())
+        .update_channel(guild_id.into(), None)
         .await?;
+
+    ctx.say("Unset the notification channel").await?;
     Ok(())
 }
 
 /// Display a list of the summoners that the guild of the current context is
 /// subscribed to
 #[poise::command(slash_command, guild_only)]
-pub async fn list(
-    ctx: poise::Context<'_, Data, CommandError>,
-) -> Result<(), CommandError> {
-    let guild_id = ctx.guild_id().expect("Called in guild context only");
+pub async fn list(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
+    let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
 
     // Get raw data from DB
     let followed_data = ctx
@@ -227,17 +236,16 @@ pub async fn list(
             .data()
             .db_handler
             .get_summoner(&guild_following.puuid)
-            .await
-            .unwrap()
-            .unwrap();
+            .await?
+            .context("Failed to get summoner matching PUUID from database")?;
         let summoner_name = format!("{}#{}", summoner.game_name, summoner.tag);
-        summoner_name
+        Ok::<String, anyhow::Error>(summoner_name)
     });
     tokio::pin!(lines);
 
     let mut index = 1;
     while let Some(line) = lines.next().await {
-        message += &format!("**{})** {}\n", index, line);
+        message += &format!("**{})** {}\n", index, line?);
         index += 1;
     }
 
@@ -248,10 +256,7 @@ pub async fn list(
 
 /// Display information about the bot (e.g. version)
 #[poise::command(slash_command, guild_only)]
-pub async fn about(
-    ctx: poise::Context<'_, Data, CommandError>,
-) -> Result<(), CommandError> {
-    let _guild_id = ctx.guild_id().unwrap();
+pub async fn about(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
     let message = format!("v{}", env!("CARGO_PKG_VERSION"));
     ctx.reply(message).await?;
     Ok(())
