@@ -9,6 +9,9 @@ pub use sqlx::sqlite::SqlitePoolOptions;
 
 pub mod model;
 
+/// Draft, Ranked Solo, Ranked Flex
+const QUEUE_IDS: [u16; 3] = [400, 420, 440];
+
 // TODO: Job queue for DB tasks?
 // TODO: Improve this organization
 
@@ -211,13 +214,16 @@ impl DbHandler {
     ) -> Result<[model::SummonerMatch; SIZE], Error> {
         // TODO: Only get ints?
         let guild_id = guild_id as i64;
+        let queue_ids = QUEUE_IDS.map(|n| n.to_string()).join(", ");
         sqlx::query_as!(
             model::SummonerMatch,
             "SELECT summoner_match.* FROM summoner_match
             INNER JOIN guild_following ON guild_following.puuid = summoner_match.puuid
-            WHERE guild_following.guild_id = ?
+            INNER JOIN match ON summoner_match.match_id = match.id
+            WHERE guild_following.guild_id = ? AND match.queue_id IN (?)
             ORDER BY deaths DESC LIMIT ?",
             guild_id,
+            queue_ids,
             SIZE as i64
         )
         .fetch_all(&self.pool)
