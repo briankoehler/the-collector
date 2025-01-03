@@ -53,7 +53,7 @@ impl DbHandler {
             .await
     }
 
-    /// Get all guilds from the database.
+    /// Get all matches from the database.
     pub async fn get_matches(&self, match_ids: &[String]) -> Result<Vec<model::Match>, Error> {
         let match_ids = match_ids.join(", ");
         sqlx::query_as!(
@@ -62,6 +62,17 @@ impl DbHandler {
             match_ids
         )
         .fetch_all(&self.pool)
+        .await
+    }
+
+    /// Get all matches from the database.
+    pub async fn get_match(&self, match_id: &str) -> Result<Option<model::Match>, Error> {
+        sqlx::query_as!(
+            model::Match,
+            "SELECT * FROM match WHERE id = ?",
+            match_id
+        )
+        .fetch_optional(&self.pool)
         .await
     }
 

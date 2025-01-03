@@ -8,6 +8,8 @@ use tokio_stream::StreamExt;
 
 const LEADERBOARD_SIZE: usize = 10;
 
+type CommandError = Box<dyn std::error::Error + Send + Sync>;
+
 pub struct Data {
     pub db_handler: Arc<DbHandler>,
     pub riot_api: RiotApi,
@@ -18,9 +20,9 @@ pub struct Data {
 /// Displays a leaderboard of the top ints
 #[poise::command(slash_command, guild_only)]
 pub async fn leaderboard(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let guild_id = ctx.guild_id().expect("Called in guild context only");
+    ctx: poise::Context<'_, Data, CommandError>,
+) -> Result<(), CommandError> {
+    let guild_id = ctx.guild_id().context("Called in guild context only")?;
 
     // Get leaderboard data from the database
     let leaderboard_data = ctx
@@ -33,25 +35,23 @@ pub async fn leaderboard(
     // TODO: Examine better ways to handle this
     let mut message = String::from("**INT LEADERBOARD**\n**-------------------------**\n");
     let lines = tokio_stream::iter(leaderboard_data).then(|summoner_match| async move {
+        // TODO: Get summoner and match data in same query
         let summoner = ctx
             .data()
             .db_handler
             .get_summoner(&summoner_match.puuid)
-            .await
-            .unwrap()
-            .unwrap();
-        let matches = ctx
+            .await?
+            .context("No summoner found with matching PUUID")?;
+        let match_info = ctx
             .data()
             .db_handler
-            .get_matches(&[summoner_match.match_id])
-            .await
-            .unwrap();
-        let match_info = matches.first().unwrap();
+            .get_match(&summoner_match.match_id)
+            .await?
+            .context("No match found with matching ID")?;
 
         let version = GameVersion(match_info.game_version.clone())
             .to_data_dragon_version()
-            .await
-            .unwrap();
+            .await?;
         let summoner_name = format!("{}#{}", summoner.game_name, summoner.tag);
         let champion_name = ctx
             .data()
@@ -59,23 +59,22 @@ pub async fn leaderboard(
             .lock()
             .await
             .get_champion_name(&version, summoner_match.champion_id as u16)
-            .await
-            .unwrap()
-            .unwrap();
-        format!(
+            .await?
+            .context("No champion with ID found")?;
+        Ok::<String, anyhow::Error>(format!(
             "{}/{}/{} - {} ({})",
             summoner_match.kills,
             summoner_match.deaths,
             summoner_match.assists,
             summoner_name,
             champion_name,
-        )
+        ))
     });
     tokio::pin!(lines);
 
     let mut index = 1;
     while let Some(line) = lines.next().await {
-        message += &format!("**{})** {}\n", index, line);
+        message += &format!("**{})** {}\n", index, line?);
         index += 1;
     }
 
@@ -87,10 +86,10 @@ pub async fn leaderboard(
 /// Subscribes the guild of the current context to the provided summoner
 #[poise::command(slash_command, guild_only)]
 pub async fn follow(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
+    ctx: poise::Context<'_, Data, CommandError>,
     #[description = "Summoner Name"] name: String,
     #[description = "Summoner Tag"] tag: String,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().expect("Called in guild context only");
 
     // TODO: Check for puuid in database first
@@ -133,10 +132,10 @@ pub async fn follow(
 /// Unsubscribes the guild of the current context to the provided summoner
 #[poise::command(slash_command, guild_only)]
 pub async fn unfollow(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
+    ctx: poise::Context<'_, Data, CommandError>,
     #[description = "Summoner Name"] name: String,
     #[description = "Summoner Tag"] tag: String,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().unwrap();
     let summoner = ctx
         .data()
@@ -158,10 +157,10 @@ pub async fn unfollow(
 /// Display statistics of the provided summoner
 #[poise::command(slash_command, guild_only)]
 pub async fn stats(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
+    ctx: poise::Context<'_, Data, CommandError>,
     #[description = "Summoner Name"] _name: String,
     #[description = "Summoner Tag"] _tag: String,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<(), CommandError> {
     // TODO
     ctx.say("Coming soon").await?;
     Ok(())
@@ -170,8 +169,8 @@ pub async fn stats(
 /// Set the channel that notifications are sent to
 #[poise::command(slash_command, guild_only)]
 pub async fn here(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ctx: poise::Context<'_, Data, CommandError>,
+) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().expect("Called in guild context only");
     let channel_id = ctx.channel_id();
     ctx.data()
@@ -189,8 +188,8 @@ pub async fn here(
 /// Set the channel that notifications are sent to
 #[poise::command(slash_command, guild_only)]
 pub async fn unhere(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ctx: poise::Context<'_, Data, CommandError>,
+) -> Result<(), CommandError> {
     // TODO: Validate that this channel was being used
     let channel_id = ctx.channel_id();
     ctx.data()
@@ -204,8 +203,8 @@ pub async fn unhere(
 /// subscribed to
 #[poise::command(slash_command, guild_only)]
 pub async fn list(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ctx: poise::Context<'_, Data, CommandError>,
+) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().expect("Called in guild context only");
 
     // Get raw data from DB
@@ -250,8 +249,8 @@ pub async fn list(
 /// Display information about the bot (e.g. version)
 #[poise::command(slash_command, guild_only)]
 pub async fn about(
-    ctx: poise::Context<'_, Data, Box<dyn std::error::Error + Send + Sync>>,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ctx: poise::Context<'_, Data, CommandError>,
+) -> Result<(), CommandError> {
     let _guild_id = ctx.guild_id().unwrap();
     let message = format!("v{}", env!("CARGO_PKG_VERSION"));
     ctx.reply(message).await?;
