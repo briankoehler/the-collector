@@ -1,5 +1,6 @@
 use anyhow::Context as _;
 use command::Data;
+use config::Config;
 use ddragon::DataDragon;
 use evaluator::MatchStatsEvaluator;
 use handler::bot::BotHandler;
@@ -16,6 +17,7 @@ use tracing::info;
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
+mod config;
 mod ddragon;
 mod evaluator;
 mod handler;
@@ -26,22 +28,20 @@ async fn main() -> anyhow::Result<()> {
     dotenv::dotenv()?;
     setup_tracing_subscriber();
 
+    info!("Loading configuration");
+    let config = Config::load(std::env::args().nth(1)).await?;
+
     info!("Setting up DB client");
-    let db_uri = std::env::var("DATABASE_URL")?;
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&db_uri)
+        .connect(&config.database_url)
         .await
         .context("Failed to connect to database")?;
     let db_handler = Arc::new(DbHandler::new(pool));
 
-    let token = std::env::var("DISCORD_TOKEN")?;
-    let intents = GatewayIntents::all();
-
     // Setup Riot API
     info!("Setting up Riot API client");
-    let api_key = std::env::var("RGAPI_KEY")?;
-    let riot_api = RiotApi::new(api_key);
+    let riot_api = RiotApi::new(config.rgapi_key);
 
     let db_handler_clone = db_handler.clone();
     let framework = Framework::builder()
@@ -70,7 +70,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // TODO: Consolidate the event handler to the poise framework builder
-    let mut client = Client::builder(token, intents)
+    let mut client = Client::builder(config.discord_token, GatewayIntents::all())
         .framework(framework)
         .event_handler(BotHandler {
             db_handler: db_handler.clone(),
@@ -82,7 +82,7 @@ async fn main() -> anyhow::Result<()> {
         db_handler: db_handler.clone(),
         subscriber: IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?,
         evaluator: MatchStatsEvaluator::new(),
-        message_builder: MessageBuilder::new(),
+        message_builder: MessageBuilder::new(config.message_templates_path).await?,
         http: client.http.clone(),
     };
     info!("Starting Summoner Match Handler");

@@ -1,19 +1,8 @@
 use rand::seq::SliceRandom;
+use std::path::Path;
 use the_collector_db::model;
-
-// TODO: Load from configuration file
-const TEMPLATES: [&str; 10] = [
-    "%s just died **%d times**. Wow!",
-    "Solid **%d bomb** by %s.",
-    "**%d death** game coming from %s. Nice.",
-    "Just a little bit of limit testing by %s, resulting in **%d deaths.**",
-    "Mr. Inty Pants %s just inted **%d times!**",
-    "Yikes, **%d deaths** for %s that last match.",
-    "What a game by %s! **%k kills and %d deaths!**",
-    "**BREAKING NEWS:** %S INTS ANOTHER GAME WITH **%d DEATHS**.",
-    "**NEWS FLASH:** %S DROPS A **%d DEATH** GAME.",
-    "Holy moly - **%d DEATHS** BY %S!!",
-];
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
 
 #[derive(Debug)]
 pub struct MessageBuilder {
@@ -21,10 +10,17 @@ pub struct MessageBuilder {
 }
 
 impl MessageBuilder {
-    pub fn new() -> Self {
-        Self {
-            templates: TEMPLATES.map(|s| s.to_string()).to_vec(),
+    pub async fn new(templates_path: impl AsRef<Path>) -> anyhow::Result<Self> {
+        let file = File::open(templates_path).await?;
+        let reader = BufReader::new(file);
+
+        let mut stream = reader.lines();
+        let mut templates = Vec::new();
+        while let Some(line) = stream.next_line().await? {
+            templates.push(line);
         }
+
+        Ok(Self { templates })
     }
 
     // TODO: Add more here

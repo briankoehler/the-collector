@@ -23,3 +23,4 @@ reqwest = { version = "0.12", features = ["json"] }
 serde = { version = "1.0.217", features = ["derive"] }
 tokio-stream = "0.1.17"
 openssl = { version = "0.10", features = ["vendored"] }
+toml = "0.8.19"
