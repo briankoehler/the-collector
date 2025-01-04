@@ -1,12 +1,14 @@
+use error::Error;
 use riven::models::account_v1::Account;
 use riven::models::match_v5::Match;
 use sqlx::sqlite::SqliteQueryResult;
 use sqlx::types::chrono::{DateTime, Utc};
-use sqlx::{Error, Pool, Sqlite};
+use sqlx::{Pool, Sqlite};
 
 // Re-export so that clients can avoid having sqlx as a dependency
 pub use sqlx::sqlite::SqlitePoolOptions;
 
+pub mod error;
 pub mod model;
 
 /// Draft, Ranked Solo, Ranked Flex
@@ -37,6 +39,7 @@ impl DbHandler {
         )
         .fetch_optional(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     /// Get all summoners from the database.
@@ -44,6 +47,7 @@ impl DbHandler {
         sqlx::query_as!(model::Summoner, "SELECT * FROM summoner")
             .fetch_all(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     /// Get all guilds from the database.
@@ -51,6 +55,7 @@ impl DbHandler {
         sqlx::query_as!(model::Guild, "SELECT * FROM guild")
             .fetch_all(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     /// Get all matches from the database.
@@ -65,7 +70,7 @@ impl DbHandler {
         for match_id in match_ids {
             query = query.bind(match_id);
         }
-        query.fetch_all(&self.pool).await
+        query.fetch_all(&self.pool).await.map_err(Error::SqlxError)
     }
 
     /// Get all matches from the database.
@@ -73,6 +78,7 @@ impl DbHandler {
         sqlx::query_as!(model::Match, "SELECT * FROM match WHERE id = ?", match_id)
             .fetch_optional(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     /// Get guild followings that match the provided guild ID.
@@ -88,6 +94,7 @@ impl DbHandler {
         )
         .fetch_all(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     /// Get the latest match information and respective stats of a PUUID.
@@ -101,6 +108,7 @@ impl DbHandler {
         )
         .fetch_optional(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     /// Get the latest match information and respective stats of a PUUID.
@@ -110,13 +118,20 @@ impl DbHandler {
         )
         .fetch_all(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     /// Insert account data
     pub async fn insert_summoner(&self, account: Account) -> Result<SqliteQueryResult, Error> {
         let now = Utc::now().naive_utc();
-        let game_name = account.game_name.as_ref().unwrap();
-        let tag = &account.tag_line.as_ref().unwrap();
+        let game_name = account
+            .game_name
+            .as_ref()
+            .ok_or(Error::MissingData("Game Name".into()))?;
+        let tag = &account
+            .tag_line
+            .as_ref()
+            .ok_or(Error::MissingData("Tag".into()))?;
         sqlx::query!(
             "INSERT INTO summoner (puuid, game_name, tag, create_time) VALUES (?, ?, ?, ?)",
             account.puuid,
@@ -126,6 +141,7 @@ impl DbHandler {
         )
         .execute(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     /// Insert guild data
@@ -134,6 +150,7 @@ impl DbHandler {
         sqlx::query!("INSERT OR IGNORE INTO guild (id) VALUES (?)", guild_id)
             .execute(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     /// Delete guild data
@@ -142,17 +159,18 @@ impl DbHandler {
         sqlx::query!("DELETE FROM guild WHERE id = ?", guild_id)
             .execute(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     /// Insert match data
     pub async fn insert_match(&self, data: &Match) -> Result<SqliteQueryResult, Error> {
-        let winning_team_id = get_winning_team(&data);
-        let surrender = get_surrender(&data);
+        let winning_team_id = get_winning_team(&data)?;
+        let surrender = get_surrender(&data)?;
 
         sqlx::query("INSERT INTO match (id, start_time, duration, queue_id, game_version, game_mode, winning_team_id, surrender)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
             .bind(&data.metadata.match_id)
-            .bind(DateTime::from_timestamp_millis(data.info.game_start_timestamp).unwrap())
+            .bind(DateTime::from_timestamp_millis(data.info.game_start_timestamp).ok_or(Error::DateTimeOutOfRange)?)
             .bind(data.info.game_duration * 1000) // Convert to milliseconds to match start timestamp
             .bind(u16::from(data.info.queue_id))
             .bind(&data.info.game_version)
@@ -161,6 +179,7 @@ impl DbHandler {
             .bind(surrender)
             .execute(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     /// Insert summoner match data
@@ -174,7 +193,7 @@ impl DbHandler {
             .participants
             .iter()
             .find(|p| p.puuid == puuid)
-            .unwrap();
+            .ok_or(Error::MissingData("Matching PUUID".into()))?;
 
         sqlx::query("INSERT INTO summoner_match (puuid, match_id, kills, deaths, assists, champion_id, position, longest_time_living, time_dead, team_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
@@ -183,13 +202,14 @@ impl DbHandler {
             .bind(summoner_stats.kills)
             .bind(summoner_stats.deaths)
             .bind(summoner_stats.assists)
-            .bind(i16::from(summoner_stats.champion().unwrap()))
+            .bind(i16::from(summoner_stats.champion()?))
             .bind(&summoner_stats.team_position)
             .bind(summoner_stats.longest_time_spent_living)
             .bind(summoner_stats.total_time_spent_dead)
             .bind(u16::from(summoner_stats.team_id))
             .execute(&self.pool)
             .await
+            .map_err(Error::SqlxError)
     }
 
     pub async fn delete_channel(&self, channel_id: u64) -> Result<SqliteQueryResult, Error> {
@@ -200,6 +220,7 @@ impl DbHandler {
         )
         .execute(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     pub async fn update_channel(
@@ -216,6 +237,7 @@ impl DbHandler {
         )
         .execute(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     pub async fn get_leaderboard<const SIZE: usize>(
@@ -241,7 +263,11 @@ impl DbHandler {
             .bind(SIZE as i64)
             .fetch_all(&self.pool)
             .await
-            .map(|data| data.try_into().unwrap())
+            .map_err(Error::SqlxError)
+            .map(|data| {
+                data.try_into()
+                    .map_err(|_| Error::NotEnoughLeaderboardMatches)
+            })?
     }
 
     pub async fn insert_guild_following(
@@ -257,6 +283,7 @@ impl DbHandler {
         )
         .execute(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     pub async fn get_summoner_match(
@@ -272,6 +299,7 @@ impl DbHandler {
         )
         .fetch_optional(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     pub async fn delete_guild_following(
@@ -287,6 +315,7 @@ impl DbHandler {
         )
         .execute(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 
     pub async fn get_summoner_by_name(
@@ -302,23 +331,26 @@ impl DbHandler {
         )
         .fetch_optional(&self.pool)
         .await
+        .map_err(Error::SqlxError)
     }
 }
 
-fn get_winning_team(data: &Match) -> u16 {
-    data.info
+fn get_winning_team(data: &Match) -> Result<u16, Error> {
+    Ok(data
+        .info
         .participants
         .iter()
         .find(|participant| participant.win)
-        .unwrap()
+        .ok_or(Error::MissingData("Winner".into()))?
         .team_id
-        .into()
+        .into())
 }
 
-fn get_surrender(data: &Match) -> bool {
-    data.info
+fn get_surrender(data: &Match) -> Result<bool, Error> {
+    Ok(data
+        .info
         .participants
         .first()
-        .unwrap()
-        .game_ended_in_surrender
+        .ok_or(Error::MissingData("Participants".into()))?
+        .game_ended_in_surrender)
 }

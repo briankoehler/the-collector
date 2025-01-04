@@ -2861,6 +2861,7 @@ dependencies = [
  "riven",
  "serde",
  "sqlx",
+ "thiserror 2.0.9",
 ]
 
 [[package]]
