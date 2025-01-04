@@ -21,6 +21,7 @@ pub struct Data {
 #[poise::command(slash_command, guild_only)]
 pub async fn leaderboard(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
+    ctx.defer().await?;
 
     // Get leaderboard data from the database
     let leaderboard_data = ctx
