@@ -55,14 +55,17 @@ impl DbHandler {
 
     /// Get all matches from the database.
     pub async fn get_matches(&self, match_ids: &[String]) -> Result<Vec<model::Match>, Error> {
-        let match_ids = match_ids.join(", ");
-        sqlx::query_as!(
-            model::Match,
-            "SELECT * FROM match WHERE id IN (?)",
-            match_ids
-        )
-        .fetch_all(&self.pool)
-        .await
+        let queue_parameters = match_ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<&str>>()
+            .join(", ");
+        let raw_query = format!("SELECT * FROM match WHERE id IN ({queue_parameters})");
+        let mut query = sqlx::query_as(&raw_query);
+        for match_id in match_ids {
+            query = query.bind(match_id);
+        }
+        query.fetch_all(&self.pool).await
     }
 
     /// Get all matches from the database.
@@ -220,22 +223,25 @@ impl DbHandler {
         guild_id: u64,
     ) -> Result<[model::SummonerMatch; SIZE], Error> {
         // TODO: Only get ints?
-        let guild_id = guild_id as i64;
-        let queue_ids = QUEUE_IDS.map(|n| n.to_string()).join(", ");
-        sqlx::query_as!(
-            model::SummonerMatch,
+        // TODO: Handle if not enough matches for SIZE yet
+        let queue_parameters = QUEUE_IDS.map(|_| "?").join(", ");
+        let raw_query = format!(
             "SELECT summoner_match.* FROM summoner_match
             INNER JOIN guild_following ON guild_following.puuid = summoner_match.puuid
             INNER JOIN match ON summoner_match.match_id = match.id
-            WHERE guild_following.guild_id = ? AND match.queue_id IN (?)
+            WHERE guild_following.guild_id = ? AND match.queue_id IN ({})
             ORDER BY deaths DESC LIMIT ?",
-            guild_id,
-            queue_ids,
-            SIZE as i64
-        )
-        .fetch_all(&self.pool)
-        .await
-        .map(|data| data.try_into().unwrap())
+            queue_parameters
+        );
+        let mut query = sqlx::query_as(&raw_query).bind(guild_id as i64);
+        for queue_id in QUEUE_IDS {
+            query = query.bind(queue_id);
+        }
+        query
+            .bind(SIZE as i64)
+            .fetch_all(&self.pool)
+            .await
+            .map(|data| data.try_into().unwrap())
     }
 
     pub async fn insert_guild_following(
