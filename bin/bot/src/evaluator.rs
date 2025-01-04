@@ -1,16 +1,18 @@
+use chrono::TimeDelta;
 use std::collections::HashMap;
-use the_collector_db::model::SummonerMatch;
+use the_collector_db::model::{Match, SummonerMatch};
 
 // TODO: Move to a configuration file
 // TODO: Research values to use here
 lazy_static::lazy_static! {
     static ref THRESHOLDS: HashMap<Role, Threshold> = {
         HashMap::from([
-            (Role::Top, Threshold { kda: 1.5, deaths: 9 }),
-            (Role::Jungle, Threshold { kda: 1.5, deaths: 9 }),
-            (Role::Mid, Threshold { kda: 1.5, deaths: 9 }),
-            (Role::Bot, Threshold { kda: 1.5, deaths: 9 }),
-            (Role::Support, Threshold { kda: 1.5, deaths: 9 }),
+            (Role::Top, Threshold { weighted_kda: WeightedKda(1.5), minutes_per_death: MinutesPerDeath(3.5) }),
+            (Role::Jungle, Threshold { weighted_kda: WeightedKda(1.5), minutes_per_death: MinutesPerDeath(3.5) }),
+            (Role::Mid, Threshold { weighted_kda: WeightedKda(1.5), minutes_per_death: MinutesPerDeath(3.5) }),
+            (Role::Bot, Threshold { weighted_kda: WeightedKda(1.5), minutes_per_death: MinutesPerDeath(3.5) }),
+            (Role::Support, Threshold { weighted_kda: WeightedKda(1.5), minutes_per_death: MinutesPerDeath(3.5) }),
+            (Role::Other, Threshold { weighted_kda: WeightedKda(1.5), minutes_per_death: MinutesPerDeath(3.5) }),
         ])
     };
 }
@@ -22,6 +24,28 @@ enum Role {
     Mid,
     Bot,
     Support,
+    Other,
+}
+
+#[derive(Debug, PartialEq, PartialOrd)]
+struct WeightedKda(f32);
+
+impl From<&SummonerMatch> for WeightedKda {
+    fn from(stats: &SummonerMatch) -> Self {
+        let inner = (stats.kills as f32 + (stats.assists as f32 * 0.5)) / stats.deaths as f32;
+        Self(inner)
+    }
+}
+
+#[derive(Debug, PartialEq, PartialOrd)]
+struct MinutesPerDeath(f32);
+
+impl From<(&SummonerMatch, &Match)> for MinutesPerDeath {
+    fn from(data: (&SummonerMatch, &Match)) -> Self {
+        let minutes = TimeDelta::milliseconds(data.1.duration).num_minutes();
+        let inner = minutes as f32 / data.0.deaths as f32;
+        Self(inner)
+    }
 }
 
 /// A threshold of what is considered an int and what is not. The values
@@ -33,21 +57,19 @@ enum Role {
 /// positively as an int.
 #[derive(Debug)]
 struct Threshold {
-    kda: f32,
-    deaths: u8,
+    weighted_kda: WeightedKda,
+    minutes_per_death: MinutesPerDeath,
 }
 
 impl Threshold {
-    // TODO: Improve this logic
-    fn is_int(&self, stats: &SummonerMatch) -> bool {
-        if stats.deaths >= self.deaths.into() {
+    fn is_int(&self, stats: &SummonerMatch, match_data: &Match) -> bool {
+        if self.weighted_kda >= stats.into() {
             return true;
         }
-        let kda = (stats.kills as f32 + stats.assists as f32) / stats.deaths as f32;
-        if kda <= self.kda {
+        if self.minutes_per_death >= (stats, match_data).into() {
             return true;
         }
-        return false;
+        false
     }
 }
 
@@ -63,8 +85,19 @@ impl MatchStatsEvaluator {
         }
     }
 
-    pub fn is_int(&self, match_stats: &SummonerMatch) -> bool {
-        // TODO: Get threshold to use from position
-        self.thresholds[&Role::Top].is_int(match_stats)
+    pub fn is_int(&self, match_stats: &SummonerMatch, match_data: &Match) -> bool {
+        match match_stats
+            .position
+            .as_ref()
+            .unwrap_or(&String::from("Other"))
+        {
+            val if val == "TOP" => &self.thresholds[&Role::Top],
+            val if val == "JUNGLE" => &self.thresholds[&Role::Jungle],
+            val if val == "MIDDLE" => &self.thresholds[&Role::Mid],
+            val if val == "BOTTOM" => &self.thresholds[&Role::Bot],
+            val if val == "UTILITY" => &self.thresholds[&Role::Support],
+            _ => &self.thresholds[&Role::Other],
+        }
+        .is_int(match_stats, match_data)
     }
 }

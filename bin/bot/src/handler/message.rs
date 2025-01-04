@@ -33,8 +33,13 @@ impl MessageHandler {
             .get_summoner_match(&summoner_match_query.puuid, &summoner_match_query.match_id)
             .await?
             .context("Failed to get summoner match from {summoner_match_query:?}")?;
+        let match_data = self
+            .db_handler
+            .get_match(&summoner_match.match_id)
+            .await?
+            .context("Failed to get corresponding match")?;
 
-        if !self.evaluator.is_int(&summoner_match) {
+        if !self.evaluator.is_int(&summoner_match, &match_data) {
             return Ok(());
         }
         debug!(
