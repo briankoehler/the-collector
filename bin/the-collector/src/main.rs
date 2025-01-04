@@ -1,4 +1,5 @@
 use chrono::TimeDelta;
+use config::Config;
 use handler::{account::AccountHandler, match_data::MatchDataHandler, match_ids::MatchIdsHandler};
 use riot_api::{
     account::AccountRequester,
@@ -19,27 +20,27 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
 
+mod config;
 mod handler;
 mod riot_api;
-
-const ITERATION_SECS: u64 = 10;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
     setup_tracing_subscriber();
 
+    info!("Loading configuration");
+    let config = Config::load(std::env::args().nth(1)).await?;
+
     // Setup Riot API
     info!("Setting up Riot API client");
-    let api_key = std::env::var("RGAPI_KEY").expect("Failed to get RGAPI_KEY");
-    let riot_api = Arc::new(RiotApi::new(api_key));
+    let riot_api = Arc::new(RiotApi::new(config.rgapi_key));
 
     // Setup DB Client
     info!("Setting up DB client");
-    let db_uri = std::env::var("DATABASE_URL").expect("Failed to get DATABASE_URL");
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&db_uri)
+        .connect(&config.database_url)
         .await?;
     let db_handler = Arc::new(DbHandler::new(pool));
 
@@ -89,8 +90,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Starting main loop");
     loop {
-        debug!("Sleeping {ITERATION_SECS}s...");
-        tokio::time::sleep(std::time::Duration::from_secs(ITERATION_SECS)).await;
+        debug!("Sleeping {}s...", config.iteration_secs);
+        tokio::time::sleep(std::time::Duration::from_secs(config.iteration_secs)).await;
 
         // Start with looping summoners, because that's what we're using to query
         // the API. If we started with guilds or followings, we might end up sending

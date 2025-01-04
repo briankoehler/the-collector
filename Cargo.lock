@@ -2858,9 +2858,11 @@ dependencies = [
  "circular-queue",
  "dotenv",
  "riven",
+ "serde",
  "the-collector-db",
  "the-collector-ipc",
  "tokio",
+ "toml",
  "tracing",
  "tracing-subscriber",
 ]
