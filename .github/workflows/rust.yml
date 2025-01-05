@@ -26,5 +26,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            target/${{ matrix.target }}/the-collector"
+            target/${{ matrix.target }}/release/the-collector
             target/${{ matrix.target }}/release/int-bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
