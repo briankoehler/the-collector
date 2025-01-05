@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE guild SET channel_id = NULL WHERE channel_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "324b80a36bef632c51b56e5d66b07eea4c7909e20eeb1802dd7abb8c4497db6d"
+}

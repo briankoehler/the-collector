@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO summoner (puuid, game_name, tag, create_time) VALUES (?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "50aa2b42c28283f95c6fe29ab2234c88dec186b1c044296f7f5f141aacbb206f"
+}

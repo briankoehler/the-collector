@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT * FROM guild_following WHERE guild_id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "guild_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "puuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "4b6d2cc07b8323b2b3df3444d8162848daf61690a666c119c0776a2e5fd77f18"
+}

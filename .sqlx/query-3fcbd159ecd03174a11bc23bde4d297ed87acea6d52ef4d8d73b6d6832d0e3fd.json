@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT * FROM guild",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "channel_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "3fcbd159ecd03174a11bc23bde4d297ed87acea6d52ef4d8d73b6d6832d0e3fd"
+}

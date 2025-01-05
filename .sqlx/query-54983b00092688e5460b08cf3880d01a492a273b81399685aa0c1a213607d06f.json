@@ -1,0 +1,62 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT match.* FROM match INNER JOIN summoner_match ON match.id = summoner_match.match_id\n            WHERE summoner_match.puuid = ? ORDER BY start_time DESC LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "start_time",
+        "ordinal": 1,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "duration",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "queue_id",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "game_version",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "game_mode",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "winning_team_id",
+        "ordinal": 6,
+        "type_info": "Integer"
+      },
+      {
+        "name": "surrender",
+        "ordinal": 7,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "54983b00092688e5460b08cf3880d01a492a273b81399685aa0c1a213607d06f"
+}

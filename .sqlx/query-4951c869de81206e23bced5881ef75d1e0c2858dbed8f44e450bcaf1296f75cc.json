@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT guild.* FROM guild_following INNER JOIN guild ON guild.id = guild_following.guild_id WHERE guild_following.puuid = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "channel_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "4951c869de81206e23bced5881ef75d1e0c2858dbed8f44e450bcaf1296f75cc"
+}

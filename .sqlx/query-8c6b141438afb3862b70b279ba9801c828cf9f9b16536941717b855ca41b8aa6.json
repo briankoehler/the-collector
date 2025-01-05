@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM guild_following WHERE guild_id = ? AND puuid = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "8c6b141438afb3862b70b279ba9801c828cf9f9b16536941717b855ca41b8aa6"
+}

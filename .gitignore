@@ -1,9 +1,6 @@
 # Build
 /target
 
-# Sqlx generated
-/.sqlx
-
 # Local configuration
 /config
 .env

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO guild_following (guild_id, puuid) VALUES (?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "8db0337e91e54f1d2b85a824a4ba8c443358911faab9a8fb0f81f454e1e0b88c"
+}
