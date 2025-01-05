@@ -120,7 +120,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 start_time: Some(start_time),
                 count: None,
             };
-            info!("GetMatchIdsQuery: {query:?}");
+            debug!("GetMatchIdsQuery: {query:?}");
             matches_requester.push(query).await;
         }
     }
