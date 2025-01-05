@@ -7,12 +7,11 @@ on:
 
 jobs:
   release:
-    name: Release - ${{ matrix.platform.target }}
+    name: Release - ${{ matrix.target }}
     strategy:
       matrix:
         target: [armv7-unknown-linux-gnueabihf, aarch64-apple-darwin]
-        runs-on: [ubuntu-latest, macOS-latest]
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
