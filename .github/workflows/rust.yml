@@ -21,11 +21,19 @@ jobs:
           command: build
           target: ${{ matrix.target }}
           args: "--release"
+      - name: Make files executable
+        run: |
+          chmod +x target/${{ matrix.target }}/release/the-collector
+          chmod +x target/${{ matrix.target }}/release/int-bot
+      - name: Create tar archive
+        run: tar -cvf target/${{ matrix.target }}/the-collector.tar \
+          target/${{ matrix.target }}/release/the-collector \
+          target/${{ matrix.target }}/release/int-bot
+      - name: Gzip tar archive
+        run: gzip target/${{ matrix.target }}/the-collector.tar
       - name: Create release on GitHub
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            target/${{ matrix.target }}/release/the-collector
-            target/${{ matrix.target }}/release/int-bot
+          files: target/${{ matrix.target }}/the-collector.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
