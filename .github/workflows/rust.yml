@@ -25,12 +25,10 @@ jobs:
         run: |
           chmod +x target/${{ matrix.target }}/release/the-collector
           chmod +x target/${{ matrix.target }}/release/int-bot
-      - name: Create tar archive
-        run: tar -cvf target/${{ matrix.target }}/the-collector.tar \
+      - name: Create gzipped tarball
+        run: tar -czvf target/${{ matrix.target }}/the-collector.tar.gz \
           target/${{ matrix.target }}/release/the-collector \
           target/${{ matrix.target }}/release/int-bot
-      - name: Gzip tar archive
-        run: gzip target/${{ matrix.target }}/the-collector.tar
       - name: Create release on GitHub
         uses: softprops/action-gh-release@v1
         with:
