@@ -27,9 +27,9 @@ jobs:
           chmod +x target/${{ matrix.target }}/release/int-bot
       - name: Create gzipped tarball
         run: |
-          tar -czvf target/${{ matrix.target }}/release/the-collector.tar.gz \
-            target/${{ matrix.target }}/release/the-collector \
-            target/${{ matrix.target }}/release/int-bot
+          cd target/${{ matrix.target }}/release
+          tar -czvf the-collector.tar.gz the-collector int-bot
+          cd -
       - name: Create release on GitHub
         uses: softprops/action-gh-release@v1
         with:
