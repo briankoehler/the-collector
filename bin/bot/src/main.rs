@@ -2,7 +2,6 @@ use anyhow::Context as _;
 use command::Data;
 use config::Config;
 use ddragon::DataDragon;
-use evaluator::MatchStatsEvaluator;
 use handler::bot::BotHandler;
 use handler::message::MessageHandler;
 use message::MessageBuilder;
@@ -81,7 +80,7 @@ async fn main() -> anyhow::Result<()> {
     let summoner_match_handler = MessageHandler {
         db_handler: db_handler.clone(),
         subscriber: IpcSubscriber::new(IPC_SUMMONER_MATCH_PATH)?,
-        evaluator: MatchStatsEvaluator::new(),
+        evaluator: config.match_stats_evaluator,
         message_builder: MessageBuilder::new(config.message_templates_path).await?,
         http: client.http.clone(),
     };

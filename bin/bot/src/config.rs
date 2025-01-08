@@ -1,3 +1,4 @@
+use crate::evaluator::MatchStatsEvaluator;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 use tokio::fs::read_to_string;
@@ -8,6 +9,8 @@ pub struct Config {
     pub discord_token: String,
     pub rgapi_key: String,
     pub message_templates_path: PathBuf,
+    // TODO: Consider making this also a path
+    pub match_stats_evaluator: MatchStatsEvaluator,
 }
 
 impl Config {
