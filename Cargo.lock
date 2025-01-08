@@ -1266,7 +1266,7 @@ dependencies = [
 
 [[package]]
 name = "int-bot"
-version = "0.1.0"
+version = "0.1.0-rc.4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2851,7 +2851,7 @@ dependencies = [
 
 [[package]]
 name = "the-collector"
-version = "0.1.0"
+version = "0.1.0-rc.4"
 dependencies = [
  "anyhow",
  "chrono",
