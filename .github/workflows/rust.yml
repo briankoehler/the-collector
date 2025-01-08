@@ -2,8 +2,10 @@ name: Rust CI - Cross Compilation and Release
 
 on:
   push:
+    branches:
+      - 'release/*'
     tags:
-      - 'v*'  # Trigger on version tags (e.g., v1.0.0)
+      - '*'
 
 jobs:
   release:
@@ -27,12 +29,14 @@ jobs:
           chmod +x target/${{ matrix.target }}/release/int-bot
       - name: Create gzipped tarball
         run: |
+          VERSION=${{ github.ref }}
+          VERSION=${VERSION#refs/tags/}
           cd target/${{ matrix.target }}/release
-          tar -czvf the-collector-%{{ matrix.target }}.tar.gz the-collector int-bot
+          tar -czvf the-collector-${VERSION}-${{ matrix.target }}.tar.gz the-collector int-bot
           cd -
       - name: Create release on GitHub
         uses: softprops/action-gh-release@v1
         with:
-          files: target/${{ matrix.target }}/release/the-collector-%{{ matrix.target }}.tar.gz
+          files: target/${{ matrix.target }}/release/the-collector-${{ github.ref#refs/tags/ }}-${{ matrix.target }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
