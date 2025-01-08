@@ -2,8 +2,6 @@ name: Rust CI - Cross Compilation and Release
 
 on:
   push:
-    branches:
-      - 'release/*'
     tags:
       - '*'
 
@@ -17,6 +15,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set environment
+        run: |
+          VERSION=${{ github.ref }}
+          VERSION=${VERSION#refs/tags/}
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
@@ -37,6 +40,6 @@ jobs:
       - name: Create release on GitHub
         uses: softprops/action-gh-release@v1
         with:
-          files: target/${{ matrix.target }}/release/the-collector-${{ github.ref#refs/tags/ }}-${{ matrix.target }}.tar.gz
+          files: target/${{ matrix.target }}/release/the-collector-${{ env.VERSION }}-${{ matrix.target }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
