@@ -6,7 +6,7 @@ use the_collector_db::DbHandler;
 use tokio::sync::Mutex;
 use tokio_stream::StreamExt;
 
-const LEADERBOARD_SIZE: usize = 10;
+const DEFAULT_LEADERBOARD_SIZE: usize = 10;
 
 type CommandError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -19,7 +19,12 @@ pub struct Data {
 // TODO: Support optionally specified leaderboard size
 /// Displays a leaderboard of the top ints
 #[poise::command(slash_command, guild_only)]
-pub async fn leaderboard(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
+pub async fn leaderboard(
+    ctx: poise::Context<'_, Data, CommandError>,
+    #[description = "Leaderboard size to view"]
+    #[max = 20]
+    count: Option<usize>,
+) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
     ctx.defer().await?;
 
@@ -27,9 +32,15 @@ pub async fn leaderboard(ctx: poise::Context<'_, Data, CommandError>) -> Result<
     let leaderboard_data = ctx
         .data()
         .db_handler
-        .get_leaderboard::<LEADERBOARD_SIZE>(guild_id.into())
+        .get_leaderboard(guild_id.into(), count.unwrap_or(DEFAULT_LEADERBOARD_SIZE))
         .await?;
 
+    if leaderboard_data.is_empty() {
+        ctx.reply("No leaderboard matches yet.").await?;
+        return Ok(());
+    }
+
+    let leaderboard_data_len = leaderboard_data.len();
     // Format the leaderboard message
     // TODO: Examine better ways to handle this
     let mut message = String::from("**INT LEADERBOARD**\n**-------------------------**\n");
@@ -77,12 +88,20 @@ pub async fn leaderboard(ctx: poise::Context<'_, Data, CommandError>) -> Result<
         index += 1;
     }
 
+    if let Some(provided_count) = count {
+        if leaderboard_data_len < provided_count {
+            message += &format!(
+                "*Not enough matches played to fill a leaderboard of {provided_count} yet.*\n"
+            );
+        }
+    }
+
     // Send the message
     ctx.reply(message).await?;
     Ok(())
 }
 
-/// Subscribes the guild of the current context to the provided summoner
+/// Subscribes the guild to the provided summoner
 #[poise::command(slash_command, guild_only)]
 pub async fn follow(
     ctx: poise::Context<'_, Data, CommandError>,
@@ -211,8 +230,7 @@ pub async fn unhere(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), C
     Ok(())
 }
 
-/// Display a list of the summoners that the guild of the current context is
-/// subscribed to
+/// Display a list of the summoners that the guild is subscribed to
 #[poise::command(slash_command, guild_only)]
 pub async fn list(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().context("Trying to get guild ID")?;

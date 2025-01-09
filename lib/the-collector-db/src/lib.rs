@@ -240,10 +240,11 @@ impl DbHandler {
         .map_err(Error::SqlxError)
     }
 
-    pub async fn get_leaderboard<const SIZE: usize>(
+    pub async fn get_leaderboard(
         &self,
         guild_id: u64,
-    ) -> Result<[model::SummonerMatch; SIZE], Error> {
+        size: usize,
+    ) -> Result<Vec<model::SummonerMatch>, Error> {
         // TODO: Only get ints?
         // TODO: Handle if not enough matches for SIZE yet
         let queue_parameters = QUEUE_IDS.map(|_| "?").join(", ");
@@ -260,14 +261,10 @@ impl DbHandler {
             query = query.bind(queue_id);
         }
         query
-            .bind(SIZE as i64)
+            .bind(size as i64)
             .fetch_all(&self.pool)
             .await
             .map_err(Error::SqlxError)
-            .map(|data| {
-                data.try_into()
-                    .map_err(|_| Error::NotEnoughLeaderboardMatches)
-            })?
     }
 
     pub async fn insert_guild_following(
