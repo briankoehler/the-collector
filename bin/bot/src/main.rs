@@ -12,7 +12,7 @@ use std::sync::Arc;
 use the_collector_db::{DbHandler, SqlitePoolOptions};
 use the_collector_ipc::{sub::IpcSubscriber, IPC_SUMMONER_MATCH_PATH};
 use tokio::sync::Mutex;
-use tracing::info;
+use tracing::{debug, error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
@@ -24,7 +24,7 @@ mod message;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenv::dotenv()?;
+    load_env();
     setup_tracing_subscriber();
 
     info!("Loading configuration");
@@ -91,6 +91,14 @@ async fn main() -> anyhow::Result<()> {
     client.start().await.context("Client exited its loop")?;
 
     Ok(())
+}
+
+fn load_env() {
+    match dotenvy::dotenv() {
+        Ok(path) => info!("Overriding config with values from {path:?}"),
+        Err(e) if e.not_found() => info!("No env file found — only using values from config"),
+        Err(e) => error!("Failed to load env file: {e:?}"),
+    }
 }
 
 fn setup_tracing_subscriber() {

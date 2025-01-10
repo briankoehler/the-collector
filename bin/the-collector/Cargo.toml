@@ -10,7 +10,7 @@ the-collector-db = { path = "../../lib/the-collector-db" }
 
 # 3P
 chrono = { version = "0.4.38" }
-dotenv = { version = "0.15.0" }
+dotenvy = { version = "0.15.7" }
 riven = { version = "2.50.0" }
 tokio = { version = "1.37.0", features = ["full"] }
 tracing = { version = "0.1.41" }

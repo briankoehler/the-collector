@@ -15,7 +15,7 @@ use std::sync::Arc;
 use the_collector_db::{DbHandler, SqlitePoolOptions};
 use the_collector_ipc::{r#pub::IpcPublisher, IPC_SUMMONER_MATCH_PATH};
 use tokio::sync::mpsc::unbounded_channel;
-use tracing::{debug, info};
+use tracing::{debug, error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
@@ -26,7 +26,7 @@ mod riot_api;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv::dotenv()?;
+    load_env();
     setup_tracing_subscriber();
 
     info!("Loading configuration");
@@ -123,6 +123,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             debug!("GetMatchIdsQuery: {query:?}");
             matches_requester.push(query).await;
         }
+    }
+}
+
+fn load_env() {
+    match dotenvy::dotenv() {
+        Ok(path) => info!("Overriding config with values from {path:?}"),
+        Err(e) if e.not_found() => info!("No env file found — only using values from config"),
+        Err(e) => error!("Failed to load env file: {e:?}"),
     }
 }
 

@@ -11,7 +11,7 @@ the-collector-db = { path = "../../lib/the-collector-db" }
 # 3P
 anyhow = "1.0.95"
 async-trait = { version = "0.1.83" }
-dotenv = "0.15.0"
+dotenvy = "0.15.7"
 lazy_static = { version = "1.5.0" }
 poise = { version = "0.6.1" }
 riven = "2.57.0"
