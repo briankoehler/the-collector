@@ -116,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .timestamp();
 
             let query = GetMatchIdsQuery {
-                puuid: summoner.puuid.into(),
+                puuid: summoner.puuid,
                 start_time: Some(start_time),
                 count: None,
             };
