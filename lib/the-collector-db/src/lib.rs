@@ -164,8 +164,8 @@ impl DbHandler {
 
     /// Insert match data
     pub async fn insert_match(&self, data: &Match) -> Result<SqliteQueryResult, Error> {
-        let winning_team_id = get_winning_team(&data)?;
-        let surrender = get_surrender(&data)?;
+        let winning_team_id = get_winning_team(data)?;
+        let surrender = get_surrender(data)?;
 
         sqlx::query("INSERT INTO match (id, start_time, duration, queue_id, game_version, game_mode, winning_team_id, surrender)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
@@ -174,7 +174,7 @@ impl DbHandler {
             .bind(data.info.game_duration * 1000) // Convert to milliseconds to match start timestamp
             .bind(u16::from(data.info.queue_id))
             .bind(&data.info.game_version)
-            .bind(&data.info.game_mode.to_string())
+            .bind(data.info.game_mode.to_string())
             .bind(winning_team_id)
             .bind(surrender)
             .execute(&self.pool)
