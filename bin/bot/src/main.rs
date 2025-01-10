@@ -12,7 +12,7 @@ use std::sync::Arc;
 use the_collector_db::{DbHandler, SqlitePoolOptions};
 use the_collector_ipc::{sub::IpcSubscriber, IPC_SUMMONER_MATCH_PATH};
 use tokio::sync::Mutex;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod command;
