@@ -16,7 +16,6 @@ pub struct Data {
     pub data_dragon: Mutex<DataDragon>,
 }
 
-// TODO: Support optionally specified leaderboard size
 /// Displays a leaderboard of the top ints
 #[poise::command(slash_command, guild_only)]
 pub async fn leaderboard(

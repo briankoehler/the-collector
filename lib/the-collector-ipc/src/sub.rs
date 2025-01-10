@@ -19,7 +19,6 @@ impl<T: DeserializeOwned + Send + Sync> IpcSubscriber<T> {
         })
     }
 
-    // TODO: Return specific error types
     pub async fn recv(&self) -> Result<T, IpcError> {
         let socket = self.socket.clone();
         let bytes = tokio::task::spawn_blocking(move || socket.recv()).await??;

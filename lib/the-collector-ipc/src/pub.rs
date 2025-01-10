@@ -19,7 +19,6 @@ impl<T: Serialize + Send + Sync> IpcPublisher<T> {
         })
     }
 
-    // TODO: Return specific error types
     pub async fn publish(&self, data: T) -> Result<(), IpcError> {
         let bytes = bincode::serialize(&data)?;
         let socket = self.socket.clone();
