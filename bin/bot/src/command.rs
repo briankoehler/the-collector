@@ -241,7 +241,7 @@ pub async fn list(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), Com
         .get_guild_follows(guild_id.into())
         .await?;
 
-    if followed_data.len() == 0 {
+    if followed_data.is_empty() {
         ctx.reply("No followed summoners.").await?;
         return Ok(());
     }

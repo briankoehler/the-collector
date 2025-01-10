@@ -26,14 +26,14 @@ pub struct DataDragonBlob {
 pub struct GameVersion(pub String);
 
 impl GameVersion {
-    pub async fn to_data_dragon_version(self) -> anyhow::Result<DataDragonVersion> {
+    pub async fn to_data_dragon_version(&self) -> anyhow::Result<DataDragonVersion> {
         let version = self.0.split('.').take(2).collect::<Vec<&str>>().join(".");
 
         // TODO: Create a cache so that I/O can be avoided if possible
         let versions = fetch_versions().await?;
-        for foo in versions {
-            if foo.starts_with(&version) {
-                return Ok(DataDragonVersion(foo));
+        for v in versions {
+            if v.starts_with(&version) {
+                return Ok(DataDragonVersion(v));
             }
         }
         anyhow::bail!("Failed to find matching Data Dragon version");

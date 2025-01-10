@@ -44,12 +44,7 @@ impl MatchStatsEvaluator {
         }
 
         // If their weighted KDA is less than <= 0, evaluate as an int
-        let role = match_stats
-            .position
-            .as_ref()
-            .map(String::as_str)
-            .unwrap_or("other")
-            .into();
+        let role = match_stats.position.as_deref().unwrap_or("other").into();
         self.kda_weights[&role].calculate_weighted_kda(match_stats) <= self.kda_limit
     }
 }
