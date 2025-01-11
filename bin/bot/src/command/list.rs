@@ -3,7 +3,7 @@ use anyhow::Context;
 use tokio_stream::StreamExt;
 
 /// Display a list of the summoners that the guild is subscribed to
-#[poise::command(slash_command, guild_only)]
+#[poise::command(slash_command, guild_only, ephemeral)]
 pub async fn list(ctx: poise::Context<'_, Data, CommandError>) -> Result<(), CommandError> {
     let guild_id = ctx.guild_id().context("Trying to get guild ID")?;
 
