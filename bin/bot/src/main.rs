@@ -53,6 +53,7 @@ async fn main() -> anyhow::Result<()> {
                 command::list(),
                 command::stats(),
                 command::unfollow(),
+                command::unhere(),
             ],
             ..Default::default()
         })
