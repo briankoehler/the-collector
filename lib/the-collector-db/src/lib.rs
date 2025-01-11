@@ -121,8 +121,9 @@ impl DbHandler {
         .map_err(Error::SqlxError)
     }
 
-    /// Insert account data
-    pub async fn insert_summoner(&self, account: Account) -> Result<SqliteQueryResult, Error> {
+    /// Insert account data - does not return an error if an account with the same PUUID
+    /// already exists (keeping the original).
+    pub async fn insert_summoner(&self, account: &Account) -> Result<SqliteQueryResult, Error> {
         let now = Utc::now().naive_utc();
         let game_name = account
             .game_name
@@ -133,7 +134,9 @@ impl DbHandler {
             .as_ref()
             .ok_or(Error::MissingData("Tag".into()))?;
         sqlx::query!(
-            "INSERT INTO summoner (puuid, game_name, tag, create_time) VALUES (?, ?, ?, ?)",
+            "INSERT OR IGNORE
+            INTO summoner (puuid, game_name, tag, create_time)
+            VALUES (?, ?, ?, ?)",
             account.puuid,
             game_name,
             tag,

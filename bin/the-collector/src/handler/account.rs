@@ -30,7 +30,7 @@ impl AccountHandler {
                 .expect("Receiving channel closed unexpectedly");
             debug!("Received Account data: {data:?}");
 
-            if let Err(e) = self.db_conn.insert_summoner(data).await {
+            if let Err(e) = self.db_conn.insert_summoner(&data).await {
                 error!("Failed to insert summoner to database: {e:?}");
             }
         }
