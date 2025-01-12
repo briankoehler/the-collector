@@ -46,3 +46,15 @@ pub struct SummonerMatch {
     pub time_dead: i64,
     pub team_id: i64,
 }
+
+#[derive(Debug, FromRow, Serialize, Deserialize)]
+pub struct SummonerAggregateStats {
+    pub game_name: String,
+    pub tag: String,
+    pub num_matches: i64,
+    pub kills: i64,
+    pub deaths: i64,
+    pub assists: i64,
+    pub total_duration: i64,
+    pub total_time_dead: i64,
+}

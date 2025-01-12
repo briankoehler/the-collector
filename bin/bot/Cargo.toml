@@ -25,3 +25,4 @@ tokio-stream = "0.1.17"
 openssl = { version = "0.10", features = ["vendored"] }
 toml = "0.8.19"
 chrono = "0.4.39"
+indoc = "2.0.5"

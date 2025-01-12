@@ -333,6 +333,31 @@ impl DbHandler {
         .await
         .map_err(Error::SqlxError)
     }
+
+    pub async fn get_summoner_stats(
+        &self,
+        name: &str,
+        tag: &str,
+    ) -> Result<Option<model::SummonerAggregateStats>, Error> {
+        sqlx::query_as!(
+            model::SummonerAggregateStats,
+            r#"SELECT
+                game_name AS "game_name!", tag AS "tag!", COUNT(*) AS num_matches,
+                SUM(kills) AS "kills!: u16", SUM(deaths) AS "deaths!", SUM(assists) AS "assists!",
+                SUM(duration) AS "total_duration!", SUM(time_dead) AS "total_time_dead!"
+            FROM summoner_match 
+            INNER JOIN summoner ON summoner_match.puuid = summoner.puuid
+            INNER JOIN match ON summoner_match.match_id = match.id
+            WHERE game_name = ? and tag = ?
+            HAVING num_matches > 0
+            LIMIT 1"#,
+            name,
+            tag
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(Error::SqlxError)
+    }
 }
 
 fn get_winning_team(data: &Match) -> Result<u16, Error> {
