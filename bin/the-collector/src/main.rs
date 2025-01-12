@@ -108,7 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             {
                 Some(latest_match) => latest_match
                     .start_time
-                    .checked_add_signed(TimeDelta::milliseconds(latest_match.duration))
+                    .checked_add_signed(TimeDelta::seconds(latest_match.duration))
                     .expect("Time fits"),
                 None => summoner.create_time,
             }

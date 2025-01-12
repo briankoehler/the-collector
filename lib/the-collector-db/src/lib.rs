@@ -174,7 +174,7 @@ impl DbHandler {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
             .bind(&data.metadata.match_id)
             .bind(DateTime::from_timestamp_millis(data.info.game_start_timestamp).ok_or(Error::DateTimeOutOfRange)?)
-            .bind(data.info.game_duration * 1000) // Convert to milliseconds to match start timestamp
+            .bind(data.info.game_duration)
             .bind(u16::from(data.info.queue_id))
             .bind(&data.info.game_version)
             .bind(data.info.game_mode.to_string())
