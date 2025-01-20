@@ -24,7 +24,7 @@ impl MessageBuilder {
     ) -> String {
         let templates = self
             .templates
-            .get(&level)
+            .get(level)
             .expect("Templates for given level");
 
         let message = templates
