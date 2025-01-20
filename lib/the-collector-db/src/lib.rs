@@ -249,7 +249,6 @@ impl DbHandler {
         size: usize,
     ) -> Result<Vec<model::SummonerMatch>, Error> {
         // TODO: Only get ints?
-        // TODO: Handle if not enough matches for SIZE yet
         let queue_parameters = QUEUE_IDS.map(|_| "?").join(", ");
         let raw_query = format!(
             "SELECT summoner_match.* FROM summoner_match
