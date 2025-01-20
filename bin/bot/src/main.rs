@@ -18,7 +18,6 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 mod command;
 mod config;
 mod ddragon;
-mod evaluator;
 mod handler;
 mod message;
 

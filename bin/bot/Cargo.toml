@@ -7,6 +7,7 @@ edition = "2021"
 # Workspace
 the-collector-ipc = { path = "../../lib/the-collector-ipc" }
 the-collector-db = { path = "../../lib/the-collector-db" }
+the-collector-evaluation = { path = "../../lib/the-collector-evaluation" }
 
 # 3P
 anyhow = "1.0.95"

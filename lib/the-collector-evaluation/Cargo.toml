@@ -1,0 +1,8 @@
+[package]
+name = "the-collector-evaluation"
+edition = "2021"
+version.workspace = true
+
+[dependencies]
+serde = { version = "1.0.217", features = ["derive"] }
+the-collector-db = { path = "../../lib/the-collector-db" }

@@ -1,8 +1,10 @@
-use crate::{evaluator::MatchStatsEvaluator, message::MessageBuilder};
+use crate::message::MessageBuilder;
 use anyhow::Context as _;
 use poise::serenity_prelude::Http;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
+use the_collector_evaluation::label::IntLevel;
+use the_collector_evaluation::evaluator::MatchEvaluator;
 use the_collector_ipc::{sub::IpcSubscriber, SummonerMatchQuery};
 use tracing::{debug, error};
 
@@ -10,7 +12,8 @@ use tracing::{debug, error};
 pub struct MessageHandler {
     pub db_handler: Arc<DbHandler>,
     pub subscriber: IpcSubscriber<SummonerMatchQuery>,
-    pub evaluator: MatchStatsEvaluator,
+    // TODO: Evaluate matches externally instead
+    pub evaluator: MatchEvaluator,
     pub message_builder: MessageBuilder,
     pub http: Arc<Http>,
 }
@@ -39,7 +42,8 @@ impl MessageHandler {
             .await?
             .context("Failed to get corresponding match")?;
 
-        if !self.evaluator.is_int(&summoner_match, &match_data) {
+        let evaluation = self.evaluator.evaluate(&summoner_match, &match_data);
+        if evaluation.level <= &IntLevel::Insignificant {
             return Ok(());
         }
         debug!(
@@ -52,9 +56,9 @@ impl MessageHandler {
             .get_summoner(&summoner_match.puuid)
             .await?
             .context("No summoner with PUUID found in database")?;
-        let message = self
-            .message_builder
-            .build_message(&summoner_match, &summoner);
+        let message =
+            self.message_builder
+                .build_message(&summoner_match, &summoner, evaluation.level);
         let followers = self
             .db_handler
             .get_following_guilds(&summoner_match.puuid)

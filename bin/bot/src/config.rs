@@ -1,6 +1,6 @@
-use crate::evaluator::MatchStatsEvaluator;
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
+use the_collector_evaluation::evaluator::MatchEvaluator;
 use tokio::fs::read_to_string;
 
 #[derive(Debug, Deserialize, Default)]
@@ -10,7 +10,7 @@ pub struct Config {
     pub rgapi_key: String,
     pub message_templates_path: PathBuf,
     // TODO: Consider making this also a path
-    pub match_stats_evaluator: MatchStatsEvaluator,
+    pub match_stats_evaluator: MatchEvaluator,
 }
 
 impl Config {

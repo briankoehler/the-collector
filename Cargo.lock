@@ -1281,6 +1281,7 @@ dependencies = [
  "riven",
  "serde",
  "the-collector-db",
+ "the-collector-evaluation",
  "the-collector-ipc",
  "tokio",
  "tokio-stream",
@@ -2876,6 +2877,14 @@ dependencies = [
  "serde",
  "sqlx",
  "thiserror 2.0.9",
+]
+
+[[package]]
+name = "the-collector-evaluation"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "the-collector-db",
 ]
 
 [[package]]

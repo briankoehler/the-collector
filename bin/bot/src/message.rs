@@ -1,26 +1,18 @@
 use rand::seq::SliceRandom;
-use std::path::Path;
+use serde::Deserialize;
+use std::{collections::HashMap, path::Path};
 use the_collector_db::model;
-use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use the_collector_evaluation::label::IntLevel;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct MessageBuilder {
-    templates: Vec<String>,
+    templates: HashMap<IntLevel, Vec<String>>,
 }
 
 impl MessageBuilder {
     pub async fn new(templates_path: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let file = File::open(templates_path).await?;
-        let reader = BufReader::new(file);
-
-        let mut stream = reader.lines();
-        let mut templates = Vec::new();
-        while let Some(line) = stream.next_line().await? {
-            templates.push(line);
-        }
-
-        Ok(Self { templates })
+        let contents = tokio::fs::read_to_string(templates_path).await?;
+        Ok(toml::from_str(&contents)?)
     }
 
     // TODO: Add more here
@@ -28,9 +20,14 @@ impl MessageBuilder {
         &self,
         summoner_match: &model::SummonerMatch,
         summoner: &model::Summoner,
+        level: &IntLevel,
     ) -> String {
-        let message = self
+        let templates = self
             .templates
+            .get(&level)
+            .expect("Templates for given level");
+
+        let message = templates
             .choose(&mut rand::thread_rng())
             .expect("Templates is unexpectedly empty");
         message

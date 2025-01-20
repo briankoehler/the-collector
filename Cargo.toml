@@ -5,6 +5,7 @@ members = [
     "bin/bot",
     "lib/the-collector-db",
     "lib/the-collector-ipc",
+    "lib/the-collector-evaluation",
 ]
 
 [workspace.package]
