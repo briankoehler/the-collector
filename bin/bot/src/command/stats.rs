@@ -1,7 +1,7 @@
 use crate::command::{CommandError, Data};
 use anyhow::Context;
 use indoc::formatdoc;
-use the_collector_db::model::SummonerAggregateStats;
+use the_collector_db::{model::SummonerAggregateStats, types::PgInterval};
 
 /// Display statistics of the provided summoner
 #[poise::command(slash_command, guild_only)]
@@ -23,8 +23,8 @@ pub async fn stats(
 }
 
 fn create_message(data: &SummonerAggregateStats) -> String {
-    let total_minutes = data.total_duration as f64 / 60.0;
-    let total_time_dead = data.total_time_dead as f64 / 60.0;
+    let total_minutes = interval_to_minutes(&data.total_duration);
+    let total_time_dead_minutes = interval_to_minutes(&data.total_time_dead);
 
     formatdoc! {"
         **{game_name}#{tag_line} Stats**
@@ -42,15 +42,20 @@ fn create_message(data: &SummonerAggregateStats) -> String {
         ",
         game_name = data.game_name,
         tag_line = data.tag,
-        matches = data.num_matches,
+        matches = data.num_matches.unwrap_or(0), // TODO: N/A instead of 0
         playtime = total_minutes,
-        total_dead = total_time_dead,
+        total_dead = total_time_dead_minutes,
         kills = data.kills,
         deaths = data.deaths,
         assists = data.assists,
         death_rate = total_minutes / data.deaths as f64,
-        dead_percent = (total_time_dead / total_minutes) * 100.0,
+        dead_percent = (total_time_dead_minutes / total_minutes) * 100.0,
     }
+}
+
+fn interval_to_minutes(interval: &PgInterval) -> f64 {
+    interval.days as f64 * 24.0 * 60.0
+        + interval.microseconds as f64 / 1_000_000.0 / 60.0
 }
 
 #[cfg(test)]
@@ -63,12 +68,12 @@ mod tests {
         let input_data = SummonerAggregateStats {
             game_name: String::from("riot"),
             tag: String::from("games"),
-            num_matches: 200,
+            num_matches: Some(200),
             kills: 900,
             deaths: 560,
             assists: 1300,
-            total_duration: 15000,
-            total_time_dead: 5000,
+            total_duration: PgInterval { months: 0, days: 0, microseconds: 15000 * 1_000_000 },
+            total_time_dead: PgInterval { months: 0, days: 0, microseconds: 5000 * 1_000_000 },
         };
 
         let message = create_message(&input_data);

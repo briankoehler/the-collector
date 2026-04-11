@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT guild.* FROM main.guild_following INNER JOIN main.guild ON main.guild.id = main.guild_following.guild_id WHERE main.guild_following.puuid = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "channel_id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "ad1411f8d2d50f3f449f7105e47f3ee0c2529c032c095e3f39bf15e7dd285ec1"
+}

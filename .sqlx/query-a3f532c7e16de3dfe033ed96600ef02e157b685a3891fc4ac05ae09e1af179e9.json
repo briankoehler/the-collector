@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n                game_name AS \"game_name!\", tag AS \"tag!\", COUNT(*) as \"num_matches!\",\n                SUM(kills) AS \"kills!\", SUM(deaths) AS \"deaths!\", SUM(assists) AS \"assists!\",\n                SUM(duration) AS \"total_duration!\", SUM(time_dead) AS \"total_time_dead!\"\n            FROM main.summoner_match \n            INNER JOIN main.summoner ON main.summoner_match.puuid = main.summoner.puuid\n            INNER JOIN main.match ON main.summoner_match.match_id = main.match.id\n            WHERE game_name = $1 and tag = $2\n            GROUP BY game_name, tag\n            LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "game_name!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "tag!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "num_matches!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "kills!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "deaths!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "assists!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "total_duration!",
+        "type_info": "Interval"
+      },
+      {
+        "ordinal": 7,
+        "name": "total_time_dead!",
+        "type_info": "Interval"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "a3f532c7e16de3dfe033ed96600ef02e157b685a3891fc4ac05ae09e1af179e9"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM main.guild_following WHERE guild_id = $1 AND puuid = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5f99554eb23a963b8d70d7e8e54a7fdbf0625eb421982d44bf9ce2119670e2b4"
+}

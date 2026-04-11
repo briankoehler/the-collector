@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE main.guild SET channel_id = NULL WHERE channel_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "766bdf05d9dab6a8a176334368629fe92935fb71e55f5089d675b390a0d32e89"
+}

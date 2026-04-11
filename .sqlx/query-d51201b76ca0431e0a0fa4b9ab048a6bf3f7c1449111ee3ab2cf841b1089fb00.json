@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM main.summoner_match WHERE puuid = $1 AND match_id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "puuid",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "match_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "kills",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "deaths",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 4,
+        "name": "assists",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "champion_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "position",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "longest_time_living",
+        "type_info": "Interval"
+      },
+      {
+        "ordinal": 8,
+        "name": "time_dead",
+        "type_info": "Interval"
+      },
+      {
+        "ordinal": 9,
+        "name": "team_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 10,
+        "name": "raw",
+        "type_info": "Json"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "d51201b76ca0431e0a0fa4b9ab048a6bf3f7c1449111ee3ab2cf841b1089fb00"
+}

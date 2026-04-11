@@ -1,31 +1,33 @@
 {
-  "db_name": "SQLite",
-  "query": "SELECT * FROM summoner WHERE puuid = ?",
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM main.summoner WHERE puuid = $1",
   "describe": {
     "columns": [
       {
-        "name": "puuid",
         "ordinal": 0,
+        "name": "puuid",
         "type_info": "Text"
       },
       {
-        "name": "game_name",
         "ordinal": 1,
+        "name": "game_name",
         "type_info": "Text"
       },
       {
-        "name": "tag",
         "ordinal": 2,
+        "name": "tag",
         "type_info": "Text"
       },
       {
-        "name": "create_time",
         "ordinal": 3,
-        "type_info": "Datetime"
+        "name": "create_time",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
-      "Right": 1
+      "Left": [
+        "Text"
+      ]
     },
     "nullable": [
       false,
@@ -34,5 +36,5 @@
       false
     ]
   },
-  "hash": "03b8af6f4f8fcb7e2b99aee0f913b04924064eb295f0b9ca9b60160c269ec6a6"
+  "hash": "b7e5bcb9c4b5aa6e6a7df7678e6931e478a6a401d3ece6fcc2bd7363f5b4cc32"
 }

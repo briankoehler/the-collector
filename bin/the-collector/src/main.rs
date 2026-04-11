@@ -12,7 +12,7 @@ use riven::{
     RiotApi,
 };
 use std::sync::Arc;
-use the_collector_db::{DbHandler, SqlitePoolOptions};
+use the_collector_db::{DbHandler, PgPoolOptions, model};
 use the_collector_ipc::{r#pub::IpcPublisher, IPC_SUMMONER_MATCH_PATH};
 use tokio::sync::mpsc::unbounded_channel;
 use tracing::{debug, error, info};
@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Setup DB Client
     info!("Setting up DB client");
-    let pool = SqlitePoolOptions::new()
+    let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&config.database_url)
         .await?;
@@ -108,11 +108,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             {
                 Some(latest_match) => latest_match
                     .start_time
-                    .checked_add_signed(TimeDelta::seconds(latest_match.duration))
+                    .checked_add_signed(TimeDelta::microseconds(get_match_duration_microseconds(&latest_match)))
                     .expect("Time fits"),
                 None => summoner.create_time,
             }
-            .and_utc()
             .timestamp();
 
             let query = GetMatchIdsQuery {
@@ -147,4 +146,14 @@ fn setup_tracing_subscriber() {
         .with(layer)
         .with(EnvFilter::from_default_env())
         .init();
+}
+
+// TODO: Remove the need for this
+fn get_match_duration_microseconds(match_data: &model::Match) -> i64 {
+    let interval = &match_data.duration;
+    let total =
+        interval.microseconds +
+        (interval.days as i64) * 86_400 * 1_000_000;
+
+    total
 }

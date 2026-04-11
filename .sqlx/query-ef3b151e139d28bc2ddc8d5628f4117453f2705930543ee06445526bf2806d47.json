@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO main.summoner (puuid, game_name, tag, create_time)\n            VALUES ($1, $2, $3, $4)\n            ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ef3b151e139d28bc2ddc8d5628f4117453f2705930543ee06445526bf2806d47"
+}

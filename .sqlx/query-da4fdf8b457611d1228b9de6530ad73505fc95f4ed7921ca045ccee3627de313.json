@@ -1,0 +1,70 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT * FROM main.match\n            WHERE id = ANY($1)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "start_time",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "duration",
+        "type_info": "Interval"
+      },
+      {
+        "ordinal": 3,
+        "name": "queue_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 4,
+        "name": "game_version",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "game_mode",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "winning_team_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "surrender",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "raw",
+        "type_info": "Json"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "da4fdf8b457611d1228b9de6530ad73505fc95f4ed7921ca045ccee3627de313"
+}

@@ -9,7 +9,7 @@ use poise::serenity_prelude::{Client, GatewayIntents};
 use poise::{Framework, FrameworkOptions};
 use riven::RiotApi;
 use std::sync::Arc;
-use the_collector_db::{DbHandler, SqlitePoolOptions};
+use the_collector_db::{DbHandler, PgPoolOptions};
 use the_collector_ipc::{sub::IpcSubscriber, IPC_SUMMONER_MATCH_PATH};
 use tokio::sync::Mutex;
 use tracing::{error, info};
@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::load(std::env::args().nth(1)).await?;
 
     info!("Setting up DB client");
-    let pool = SqlitePoolOptions::new()
+    let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&config.database_url)
         .await
