@@ -552,6 +552,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "eserde"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "126e7cf1ef2f9cfbc4d0767cf97961beb73e62f22d90616d9a1228ab06fd1387"
+dependencies = [
+ "eserde_derive",
+ "itoa",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "eserde_derive"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a9861273a1a4623e150b093a99b9c0e51a4d1b2b52efe64facf0f15978f08e9"
+dependencies = [
+ "indexmap",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.93",
+]
+
+[[package]]
 name = "etcetera"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2028,10 +2052,11 @@ dependencies = [
 
 [[package]]
 name = "riven"
-version = "2.57.0"
+version = "2.78.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7566be753b56e3b1536f17c5ff4564eaa2e7a533d0074d5103b05984c26c292"
+checksum = "75dc3b1fb834d57b40f8979cbe0a797e9f6eb23a4ed811921399ebffef44774b"
 dependencies = [
+ "eserde",
  "futures",
  "gloo-timers",
  "log",
@@ -2039,13 +2064,14 @@ dependencies = [
  "num_enum",
  "parking_lot",
  "reqwest 0.11.27",
- "scan_fmt",
  "serde",
+ "serde_derive",
  "serde_json",
  "serde_repr",
  "slab",
  "strum",
  "strum_macros",
+ "thiserror 2.0.9",
  "tokio",
  "web-time",
 ]
@@ -2187,12 +2213,6 @@ checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
 ]
-
-[[package]]
-name = "scan_fmt"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b53b0a5db882a8e2fdaae0a43f7b39e7e9082389e978398bdf223a55b581248"
 
 [[package]]
 name = "schannel"
