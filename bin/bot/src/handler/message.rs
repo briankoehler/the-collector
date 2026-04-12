@@ -1,10 +1,11 @@
 use crate::message::MessageBuilder;
 use anyhow::Context as _;
+use chrono::{TimeDelta, Utc};
 use poise::serenity_prelude::Http;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
-use the_collector_evaluation::label::IntLevel;
 use the_collector_evaluation::evaluator::MatchEvaluator;
+use the_collector_evaluation::label::IntLevel;
 use the_collector_ipc::{sub::IpcSubscriber, SummonerMatchQuery};
 use tracing::{debug, error};
 
@@ -41,6 +42,11 @@ impl MessageHandler {
             .get_match(&summoner_match.match_id)
             .await?
             .context("Failed to get corresponding match")?;
+
+        // Avoid sending messages for old games
+        if Utc::now().signed_duration_since(match_data.start_time) > TimeDelta::hours(1) {
+            return Ok(());
+        }
 
         let evaluation = self.evaluator.evaluate(&summoner_match, &match_data);
         if evaluation.level <= &IntLevel::Insignificant {
