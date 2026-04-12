@@ -20,7 +20,11 @@ pub struct MatchEvaluator {
 }
 
 impl MatchEvaluator {
-    pub fn evaluate<'a>(&'a self, match_stats: &SummonerMatch, _match_data: &Match) -> Evaluation<'a> {
+    pub fn evaluate<'a>(
+        &'a self,
+        match_stats: &SummonerMatch,
+        _match_data: &Match,
+    ) -> Evaluation<'a> {
         let role = match_stats.position.as_deref().unwrap_or_default().into();
         let kda = self.kda_weights[&role].calculate_weighted_kda(match_stats);
 

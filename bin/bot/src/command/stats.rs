@@ -54,8 +54,7 @@ fn create_message(data: &SummonerAggregateStats) -> String {
 }
 
 fn interval_to_minutes(interval: &PgInterval) -> f64 {
-    interval.days as f64 * 24.0 * 60.0
-        + interval.microseconds as f64 / 1_000_000.0 / 60.0
+    interval.days as f64 * 24.0 * 60.0 + interval.microseconds as f64 / 1_000_000.0 / 60.0
 }
 
 #[cfg(test)]
@@ -72,8 +71,16 @@ mod tests {
             kills: 900,
             deaths: 560,
             assists: 1300,
-            total_duration: PgInterval { months: 0, days: 0, microseconds: 15000 * 1_000_000 },
-            total_time_dead: PgInterval { months: 0, days: 0, microseconds: 5000 * 1_000_000 },
+            total_duration: PgInterval {
+                months: 0,
+                days: 0,
+                microseconds: 15000 * 1_000_000,
+            },
+            total_time_dead: PgInterval {
+                months: 0,
+                days: 0,
+                microseconds: 5000 * 1_000_000,
+            },
         };
 
         let message = create_message(&input_data);

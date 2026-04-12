@@ -12,7 +12,7 @@ use riven::{
     RiotApi,
 };
 use std::sync::Arc;
-use the_collector_db::{DbHandler, PgPoolOptions, model};
+use the_collector_db::{model, DbHandler, PgPoolOptions};
 use the_collector_ipc::{r#pub::IpcPublisher, IPC_SUMMONER_MATCH_PATH};
 use tokio::sync::mpsc::unbounded_channel;
 use tracing::{debug, error, info};
@@ -108,7 +108,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             {
                 Some(latest_match) => latest_match
                     .start_time
-                    .checked_add_signed(TimeDelta::microseconds(get_match_duration_microseconds(&latest_match)))
+                    .checked_add_signed(TimeDelta::microseconds(get_match_duration_microseconds(
+                        &latest_match,
+                    )))
                     .expect("Time fits"),
                 None => summoner.create_time,
             }
@@ -151,9 +153,7 @@ fn setup_tracing_subscriber() {
 // TODO: Remove the need for this
 fn get_match_duration_microseconds(match_data: &model::Match) -> i64 {
     let interval = &match_data.duration;
-    let total =
-        interval.microseconds +
-        (interval.days as i64) * 86_400 * 1_000_000;
+    let total = interval.microseconds + (interval.days as i64) * 86_400 * 1_000_000;
 
     total
 }

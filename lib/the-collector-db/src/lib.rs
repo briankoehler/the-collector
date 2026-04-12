@@ -6,8 +6,8 @@ use sqlx::types::chrono::{DateTime, Utc};
 use sqlx::{Pool, Postgres};
 
 // Re-export so that clients can avoid having sqlx as a dependency
-pub use sqlx::postgres::PgPoolOptions;
 pub use sqlx::postgres::types;
+pub use sqlx::postgres::PgPoolOptions;
 
 pub mod error;
 pub mod model;
@@ -67,15 +67,22 @@ impl DbHandler {
             WHERE id = ANY($1)
             "#,
             match_ids
-        ).fetch_all(&self.pool).await.map_err(Error::SqlxError)
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(Error::SqlxError)
     }
 
     /// Get all matches from the database.
     pub async fn get_match(&self, match_id: &str) -> Result<Option<model::Match>, Error> {
-        sqlx::query_as!(model::Match, "SELECT * FROM main.match WHERE id = $1", match_id)
-            .fetch_optional(&self.pool)
-            .await
-            .map_err(Error::SqlxError)
+        sqlx::query_as!(
+            model::Match,
+            "SELECT * FROM main.match WHERE id = $1",
+            match_id
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(Error::SqlxError)
     }
 
     /// Get guild followings that match the provided guild ID.
@@ -147,10 +154,13 @@ impl DbHandler {
     /// Insert guild data
     pub async fn insert_guild(&self, guild_id: u64) -> Result<PgQueryResult, Error> {
         let guild_id = guild_id as i64;
-        sqlx::query!("INSERT INTO main.guild (id) VALUES ($1) ON CONFLICT DO NOTHING", guild_id)
-            .execute(&self.pool)
-            .await
-            .map_err(Error::SqlxError)
+        sqlx::query!(
+            "INSERT INTO main.guild (id) VALUES ($1) ON CONFLICT DO NOTHING",
+            guild_id
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(Error::SqlxError)
     }
 
     /// Delete guild data
@@ -257,10 +267,7 @@ impl DbHandler {
             &QUEUE_IDS,
             size as i64,
         );
-        query
-            .fetch_all(&self.pool)
-            .await
-            .map_err(Error::SqlxError)
+        query.fetch_all(&self.pool).await.map_err(Error::SqlxError)
     }
 
     pub async fn insert_guild_following(

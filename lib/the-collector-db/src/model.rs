@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::types::PgInterval;
 use sqlx::prelude::FromRow;
-use sqlx::types::JsonValue;
 use sqlx::types::chrono::{DateTime, Utc};
+use sqlx::types::JsonValue;
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Guild {
@@ -30,7 +30,7 @@ pub struct Match {
     pub winning_team_id: i64,
     pub surrender: bool,
     pub raw: Option<JsonValue>,
-    pub create_time: DateTime<Utc>
+    pub create_time: DateTime<Utc>,
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
