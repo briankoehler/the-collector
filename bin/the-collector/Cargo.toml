@@ -8,14 +8,16 @@ edition = "2021"
 the-collector-ipc = { path = "../../lib/the-collector-ipc" }
 the-collector-db = { path = "../../lib/the-collector-db" }
 
+# 3P Workspace
+anyhow = { workspace = true }
+chrono = { workspace = true }
+dotenvy = { workspace = true }
+riven = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+toml = { workspace = true }
+
 # 3P
-chrono = { version = "0.4.38" }
-dotenvy = { version = "0.15.7" }
-riven = { version = "2.78.0" }
-tokio = { version = "1.37.0", features = ["full"] }
-tracing = { version = "0.1.41" }
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
-circular-queue = "0.2.6"
-anyhow = "1.0.95"
-serde = { version = "1.0.217", features = ["derive"] }
-toml = "0.8.19"
+circular-queue = { version = "0.2.6" }
