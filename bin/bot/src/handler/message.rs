@@ -41,9 +41,9 @@ impl MessageHandler {
             .context("Failed to get corresponding match")?;
 
         // Avoid sending messages for old games
-        if match_data
-            .start_time
-            .signed_duration_since(Utc::now().naive_utc())
+        if Utc::now()
+            .naive_utc()
+            .signed_duration_since(match_data.start_time)
             > TimeDelta::hours(1)
         {
             return Ok(());
