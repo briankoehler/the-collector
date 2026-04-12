@@ -1,5 +1,6 @@
 use crate::{evaluator::MatchStatsEvaluator, message::MessageBuilder};
 use anyhow::Context as _;
+use chrono::{TimeDelta, Utc};
 use poise::serenity_prelude::Http;
 use std::sync::Arc;
 use the_collector_db::DbHandler;
@@ -38,6 +39,15 @@ impl MessageHandler {
             .get_match(&summoner_match.match_id)
             .await?
             .context("Failed to get corresponding match")?;
+
+        // Avoid sending messages for old games
+        if match_data
+            .start_time
+            .signed_duration_since(Utc::now().naive_utc())
+            > TimeDelta::hours(1)
+        {
+            return Ok(());
+        }
 
         if !self.evaluator.is_int(&summoner_match, &match_data) {
             return Ok(());
