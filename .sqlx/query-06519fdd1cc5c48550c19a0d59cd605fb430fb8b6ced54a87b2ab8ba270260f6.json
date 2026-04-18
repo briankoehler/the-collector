@@ -46,7 +46,12 @@
       {
         "ordinal": 8,
         "name": "raw",
-        "type_info": "Json"
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 9,
+        "name": "create_time",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -63,7 +68,8 @@
       false,
       false,
       false,
-      true
+      true,
+      false
     ]
   },
   "hash": "06519fdd1cc5c48550c19a0d59cd605fb430fb8b6ced54a87b2ab8ba270260f6"

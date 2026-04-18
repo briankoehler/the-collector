@@ -12,6 +12,11 @@
         "ordinal": 1,
         "name": "channel_id",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "create_time",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -19,7 +24,8 @@
     },
     "nullable": [
       false,
-      true
+      true,
+      false
     ]
   },
   "hash": "816ed7a27e97903cfa2daf3ccd939256c1bfd61fa3b9ea3c3f07ad5ce4978d7a"

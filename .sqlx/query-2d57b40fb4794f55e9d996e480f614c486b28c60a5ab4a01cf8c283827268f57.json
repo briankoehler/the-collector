@@ -12,6 +12,11 @@
         "ordinal": 1,
         "name": "puuid",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "create_time",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -20,6 +25,7 @@
       ]
     },
     "nullable": [
+      false,
       false,
       false
     ]
